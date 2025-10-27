@@ -308,6 +308,17 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         return this._theme === 'dark' ? 'theme-dark' : 'theme-light';
     }
 
+    private getMermaidTheme(): string {
+        return this._theme === 'dark' ? 'dark' : 'default';
+    }
+
+    private convertMermaidBlocks(html: string): string {
+        return html.replace(
+            /<code class="language-mermaid">([\s\S]*?)<\/code>/g,
+            '<div class="mermaid">$1</div>'
+        );
+    }
+
     private getDefaultZoomLevel(): number {
         const config = vscode.workspace.getConfiguration('markdownPreview');
         const defaultZoom = config.get<number>('defaultZoomLevel', 100);
@@ -437,12 +448,15 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const themeClass = this.getThemeClass();
         const colorScheme = this._theme === 'dark' ? 'dark' : 'light';
         const fontSize = Math.max(this._minZoom, Math.min(this._maxZoom, this._zoomLevel)) / 100;
+        const mermaidTheme = this.getMermaidTheme();
+        const convertedHtml = this.convertMermaidBlocks(htmlContent);
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https: http: data:; style-src ${webview.cspSource} 'unsafe-inline';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https: http: data:; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} https://cdn.jsdelivr.net 'unsafe-inline'; font-src ${webview.cspSource} data:;">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <title>Markdown Preview</title>
     <style>
         :root {
@@ -557,9 +571,15 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             margin: 4px 0;
         }
     </style>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: '${mermaidTheme}'
+        });
+    </script>
 </head>
 <body class="${themeClass}">
-    ${htmlContent}
+    ${convertedHtml}
 </body>
 </html>`;
     }
