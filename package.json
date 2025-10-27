@@ -124,32 +124,32 @@
           "group": "navigation@1"
         },
         {
-          "command": "markdownPreview.refresh",
-          "when": "view == markdownPreview",
-          "group": "navigation@2"
-        },
-        {
           "command": "markdownPreview.useDarkTheme",
           "when": "view == markdownPreview && !markdownPreview:isDarkTheme",
-          "group": "navigation@3"
+          "group": "navigation@2"
         },
         {
           "command": "markdownPreview.useLightTheme",
           "when": "view == markdownPreview && markdownPreview:isDarkTheme",
-          "group": "navigation@3"
+          "group": "navigation@2"
         },
         {
           "command": "markdownPreview.zoomIn",
           "when": "view == markdownPreview",
-          "group": "navigation@4"
+          "group": "navigation@3"
         },
         {
           "command": "markdownPreview.zoomOut",
           "when": "view == markdownPreview",
-          "group": "navigation@5"
+          "group": "navigation@4"
         },
         {
           "command": "markdownPreview.resetZoom",
+          "when": "view == markdownPreview",
+          "group": "navigation@5"
+        },
+        {
+          "command": "markdownPreview.refresh",
           "when": "view == markdownPreview",
           "group": "navigation@6"
         },
