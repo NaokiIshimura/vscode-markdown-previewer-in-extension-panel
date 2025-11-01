@@ -8,19 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.6] - 2025-11-01
 
 ### Fixed
-- Pin機能がプレビュー中のファイルを正しく固定するように修正（以前はアクティブエディタのファイルを固定していた）
+- Pin button now correctly pins the file shown in the preview (previously pinned the active editor file)
 
 ### Added
-- Pin/Unpin実行時に操作成功を示すフィードバックメッセージを表示
-  - Pin時: "Pinned preview to [ファイル名]"
-  - Unpin時: "Unpinned preview"
-- プレビューにフォーカスして「p」キーを押すことでPin/Unpinをトグル実行できるキーボードショートカット
-- プレビューにフォーカスして「e」キーを押すことでプレビュー中のファイルをエディタで開くキーボードショートカット
-  - 成功時: "Opened [ファイル名] in editor"
-- ファイル切り替え時に「Switched preview to [ファイル名]」メッセージを表示
+- Feedback messages confirm when you pin or unpin:
+  - Pin: "Pinned preview to [filename]"
+  - Unpin: "Unpinned preview"
+- Press `p` while the preview is focused to quickly toggle Pin/Unpin
+- Press `e` while the preview is focused to open the previewed file in an editor tab
+  - Shows: "Opened [filename] in editor"
+- File navigation shows confirmation messages: "Switched preview to [filename]"
 
 ### Improved
-- Pin状態でも左右キーでファイルを切り替え可能に変更（切り替え時にPin対象も自動更新）
+- Arrow keys now work even when pinned, automatically updating the pin target
 
 ## [0.1.5] - Previous Release
 
