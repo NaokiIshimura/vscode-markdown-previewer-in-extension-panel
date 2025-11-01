@@ -89,6 +89,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 case 'togglePin':
                     void this.togglePin();
                     break;
+                case 'edit':
+                    void this.edit();
+                    break;
             }
         });
 
@@ -338,7 +341,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         this._pinnedUri = this._currentPreviewUri;
         this._pinnedFileName = path.basename(this._currentPreviewUri.fsPath);
         this.updatePinContext();
-        void vscode.window.showInformationMessage(`プレビューを ${this._pinnedFileName} に固定しました`);
+        void vscode.window.showInformationMessage(`Pinned preview to ${this._pinnedFileName}`);
         await this.updatePreview();
     }
 
@@ -348,7 +351,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         this.clearPin();
-        void vscode.window.showInformationMessage('プレビューの固定を解除しました');
+        void vscode.window.showInformationMessage('Unpinned preview');
         await this.updatePreview();
     }
 
@@ -498,6 +501,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         try {
             const document = await vscode.workspace.openTextDocument(this._currentPreviewUri);
             await vscode.window.showTextDocument(document, { preview: false });
+            const fileName = path.basename(this._currentPreviewUri.fsPath);
+            void vscode.window.showInformationMessage(`Opened ${fileName} in editor`);
         } catch (error) {
             console.warn('Failed to open document for editing:', error);
             void vscode.window.showErrorMessage('Unable to open the Markdown document for editing.');
@@ -753,6 +758,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === 'p') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'togglePin' });
+            } else if (event.key === 'e') {
+                event.preventDefault();
+                vscode.postMessage({ command: 'edit' });
             }
         });
     </script>

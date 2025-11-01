@@ -12,9 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Pin/Unpin実行時に操作成功を示すフィードバックメッセージを表示
-  - Pin時: 「プレビューを [ファイル名] に固定しました」
-  - Unpin時: 「プレビューの固定を解除しました」
+  - Pin時: "Pinned preview to [ファイル名]"
+  - Unpin時: "Unpinned preview"
 - プレビューにフォーカスして「p」キーを押すことでPin/Unpinをトグル実行できるキーボードショートカット
+- プレビューにフォーカスして「e」キーを押すことでプレビュー中のファイルをエディタで開くキーボードショートカット
+  - 成功時: "Opened [ファイル名] in editor"
+- ファイル切り替え時に「Switched preview to [ファイル名]」メッセージを表示
+
+### Improved
+- Pin状態でも左右キーでファイルを切り替え可能に変更（切り替え時にPin対象も自動更新）
 
 ## [0.1.5] - Previous Release
 
