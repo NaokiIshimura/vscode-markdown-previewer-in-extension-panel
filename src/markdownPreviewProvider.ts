@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as MarkdownIt from 'markdown-it';
 import * as path from 'path';
+import { ThemeManager, EffectiveTheme } from './themeManager';
 
 interface MarkdownRenderEnv {
     webview?: vscode.Webview;
@@ -25,7 +26,10 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     private readonly _maxZoom = 200;
     private readonly _zoomStep = 10;
 
-    constructor(private readonly _extensionUri: vscode.Uri) {
+    constructor(
+        private readonly _extensionUri: vscode.Uri,
+        private readonly _themeManager: ThemeManager
+    ) {
         this._zoomLevel = this.getDefaultZoomLevel();
         this._md = new MarkdownIt({
             html: true,
@@ -34,6 +38,11 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         });
         this._theme = this.getInitialTheme();
         this.updateThemeContext();
+
+        // Listen for theme change events
+        _themeManager.onThemeChanged((effectiveTheme) => {
+            this.applyTheme(effectiveTheme);
+        });
 
         const defaultImageRender = this._md.renderer.rules.image ?? ((tokens, idx, options, env, self) => {
             return self.renderToken(tokens, idx, options);
@@ -98,6 +107,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     }
 
     public onConfigurationChanged(): void {
+        // Set fromConfig=true to prevent re-saving the configuration
         this.applyZoomChange(this.getDefaultZoomLevel(), true);
     }
 
@@ -267,13 +277,24 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         this._view.webview.html = this.getEmptyHtml(this._view.webview);
     }
 
-    private applyZoomChange(targetZoom: number, forceUpdate = false): void {
+    private applyZoomChange(targetZoom: number, fromConfig = false): void {
         const clamped = this.clampZoom(targetZoom);
-        if (!forceUpdate && this._zoomLevel === clamped) {
+        if (!fromConfig && this._zoomLevel === clamped) {
             return;
         }
         this._zoomLevel = clamped;
+
+        // Persist the zoom setting when not triggered by a configuration change event
+        if (!fromConfig) {
+            void this.saveZoomLevel(clamped);
+        }
+
         void this.updatePreview();
+    }
+
+    private async saveZoomLevel(zoomLevel: number): Promise<void> {
+        const config = vscode.workspace.getConfiguration('markdownPreview');
+        await config.update('defaultZoomLevel', zoomLevel, vscode.ConfigurationTarget.Global);
     }
 
     private clampZoom(value: number): number {
@@ -293,11 +314,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     }
 
     private getInitialTheme(): PreviewTheme {
-        const kind = vscode.window.activeColorTheme.kind;
-        if (kind === vscode.ColorThemeKind.Dark || kind === vscode.ColorThemeKind.HighContrast) {
-            return 'dark';
-        }
-        return 'light';
+        // Resolve effective theme via ThemeManager
+        return this._themeManager.resolveEffectiveTheme();
+    }
+    private applyTheme(theme: EffectiveTheme): void {
+        this._theme = theme;
+        this.updateThemeContext();
+        void this.updatePreview();
     }
 
     private updateThemeContext(): void {
