@@ -1,8 +1,13 @@
 import * as vscode from 'vscode';
 import { MarkdownPreviewProvider } from './markdownPreviewProvider';
+import { ThemeManager } from './themeManager';
 
 export function activate(context: vscode.ExtensionContext) {
-    const provider = new MarkdownPreviewProvider(context.extensionUri);
+    // Instantiate ThemeManager
+    const themeManager = new ThemeManager(context);
+
+    // Pass themeManager to MarkdownPreviewProvider
+    const provider = new MarkdownPreviewProvider(context.extensionUri, themeManager);
 
     // Register the webview provider
     context.subscriptions.push(
@@ -45,12 +50,14 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('markdownPreview.useLightTheme', () => {
+            void themeManager.setThemeMode('light');
             provider.useLightTheme();
         })
     );
 
     context.subscriptions.push(
         vscode.commands.registerCommand('markdownPreview.useDarkTheme', () => {
+            void themeManager.setThemeMode('dark');
             provider.useDarkTheme();
         })
     );
@@ -75,7 +82,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('markdownPreview.openSettings', () => {
-            void vscode.commands.executeCommand('workbench.action.openSettings', 'markdownPreview.defaultZoomLevel');
+            void vscode.commands.executeCommand('workbench.action.openSettings', 'markdownPreview');
         })
     );
 
@@ -104,6 +111,9 @@ export function activate(context: vscode.ExtensionContext) {
             }
         })
     );
+
+    // Cleanup ThemeManager
+    context.subscriptions.push(themeManager);
 }
 
 export function deactivate() { }
