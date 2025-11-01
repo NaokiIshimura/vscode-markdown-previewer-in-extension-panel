@@ -1,33 +1,53 @@
 # Markdown Previewer in Extension Area
 
-Display markdown preview in sidebar or panel.
+A VS Code extension that keeps a fully featured Markdown preview docked in the sidebar (or panel) so you can keep writing without juggling editor tabs.
 
 ![demo](assets/demo.gif)
 
 ## Features
-- Lightweight Markdown preview that stays pinned to the VS Code sidebar or panel
-- Live updates that track the active editor and inherit your current color theme
-- Pin/Unpin button to freeze the preview on the file you care about while you browse others
-- Context-aware `Edit` button that reopens the previewed file when you're focused on a different document
-- Manual `Refresh` command to force a redraw when needed
-- Flexible layout: keep it beside the editor or drag it into the panel for a larger view
+- Always-on Markdown preview that follows the active editor or stays pinned to the file you care about
+- Live updates with theme-aware styling plus manual light/dark overrides when you need to force the look
+- Zoom controls with a persistent default zoom level (50–200%)
+- Quick `Edit`, `Refresh`, `Pin/Unpin`, `Open Settings`, and zoom/theme toolbar commands right inside the view
+- Mermaid diagram rendering and smart image path resolution for workspace-relative assets
+- Flexible layout: keep it in the sidebar or drag the view into the panel for more room
 
 ## Requirements
 - Visual Studio Code 1.74.0 or later
-- Markdown files (`.md`) located in the active workspace
+- Markdown files (`.md`) in the current workspace
 
 ## Usage
-1. Open any Markdown file and the "Markdown Preview" view will render it automatically.
-2. Continue editing in the text editor; the preview updates in real time.
-3. Use the pin button to lock the preview to the current Markdown file while you switch editors; click again to resume following the active document.
-4. When the previewed file differs from the editor you're viewing, click `Edit` in the toolbar to jump straight back to that Markdown file.
-5. Use the `Refresh` button in the view toolbar if you want to manually trigger an update.
-6. Drag the view tab into the panel area when you prefer a wider preview.
+1. Open any Markdown file—the “Markdown Preview” view comes to life automatically.
+2. Keep typing in the editor; updates appear in real time. If you switch to another Markdown document, the preview follows along.
+3. Use the pin button when you want to keep the current file visible while browsing other notes. Click again to resume live-follow mode.
+4. When the preview shows a different file than the one you are editing, the `Edit` command jumps you back instantly.
+5. Toggle the light/dark button or tweak zoom levels from the toolbar whenever the default styling does not match your needs.
+6. Hit `Refresh` if you want to force a redraw (for example after external file changes or when mermaid diagrams need a rerun).
+
+### View toolbar commands
+- `Edit` — reopen the previewed document in an editor tab when it is not active.
+- `Pin` / `Unpin` — freeze the preview on the current Markdown file or return to follow mode.
+- `Use Light Theme` / `Use Dark Theme` — override automatic theming for the preview only.
+- `Zoom In`, `Zoom Out`, `Reset Zoom` — adjust rendering scale; the default persists across sessions.
+- `Refresh` — force the markdown to render again.
+- `Open Settings` — jump straight to the extension’s configuration section.
+
+### Settings
+- `markdownPreview.defaultZoomLevel` — choose the default zoom percentage (50–200, default 100).
+- `markdownPreview.themeMode` — control how the preview resolves its theme (`auto`, `light`, `dark`).
+
+## Development
+```bash
+npm install      # install dependencies
+npm run compile  # one-shot build to ./out
+npm run watch    # incremental build while developing
+```
+Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window.
 
 ## Tips & Known Limitations
-- Images and links render exactly as Markdown resolves them; local paths must be reachable from VS Code.
-- When a non-Markdown document is active, the view shows a helper message instead of stale content.
-- If styling appears off, switching the VS Code color theme can reset the view’s CSS variables.
+- Mermaid diagrams load from the jsDelivr CDN; an offline environment will skip diagram rendering.
+- Images and links resolve using VS Code’s workspace paths—ensure referenced files exist in reachable locations.
+- When a non-Markdown document is active, the view shows a helper message until you return to a `.md` file.
 
 ## Feedback
 Please report bugs or request features via GitHub Issues. Screenshots and concise reproduction steps help us respond quickly.
