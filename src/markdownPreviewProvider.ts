@@ -86,6 +86,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 case 'navigatePrevious':
                     void this.navigateToPreviousFile();
                     break;
+                case 'togglePin':
+                    void this.togglePin();
+                    break;
             }
         });
 
@@ -200,11 +203,6 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     }
 
     public async navigateToNextFile(): Promise<void> {
-        // Check if pinned
-        if (this._isPinned) {
-            return;
-        }
-
         // Invalidate cache to get latest directory state
         this.invalidateFileListCache();
 
@@ -227,6 +225,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             const dirUri = vscode.Uri.joinPath(currentUri, '..');
             const nextUri = vscode.Uri.joinPath(dirUri, files[0]);
             await this.updatePreviewWithUri(nextUri);
+            // Update pin target if pinned
+            if (this._isPinned) {
+                this._pinnedUri = nextUri;
+                this._pinnedFileName = path.basename(nextUri.fsPath);
+            }
+            const fileName = path.basename(nextUri.fsPath);
+            void vscode.window.showInformationMessage(`Switched preview to ${fileName}`);
             return;
         }
 
@@ -240,14 +245,16 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const dirUri = vscode.Uri.joinPath(currentUri, '..');
         const nextUri = vscode.Uri.joinPath(dirUri, files[currentIndex + 1]);
         await this.updatePreviewWithUri(nextUri);
+        // Update pin target if pinned
+        if (this._isPinned) {
+            this._pinnedUri = nextUri;
+            this._pinnedFileName = path.basename(nextUri.fsPath);
+        }
+        const fileName = path.basename(nextUri.fsPath);
+        void vscode.window.showInformationMessage(`Switched preview to ${fileName}`);
     }
 
     public async navigateToPreviousFile(): Promise<void> {
-        // Check if pinned
-        if (this._isPinned) {
-            return;
-        }
-
         // Invalidate cache to get latest directory state
         this.invalidateFileListCache();
 
@@ -270,6 +277,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             const dirUri = vscode.Uri.joinPath(currentUri, '..');
             const prevUri = vscode.Uri.joinPath(dirUri, files[0]);
             await this.updatePreviewWithUri(prevUri);
+            // Update pin target if pinned
+            if (this._isPinned) {
+                this._pinnedUri = prevUri;
+                this._pinnedFileName = path.basename(prevUri.fsPath);
+            }
+            const fileName = path.basename(prevUri.fsPath);
+            void vscode.window.showInformationMessage(`Switched preview to ${fileName}`);
             return;
         }
 
@@ -283,6 +297,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const dirUri = vscode.Uri.joinPath(currentUri, '..');
         const prevUri = vscode.Uri.joinPath(dirUri, files[currentIndex - 1]);
         await this.updatePreviewWithUri(prevUri);
+        // Update pin target if pinned
+        if (this._isPinned) {
+            this._pinnedUri = prevUri;
+            this._pinnedFileName = path.basename(prevUri.fsPath);
+        }
+        const fileName = path.basename(prevUri.fsPath);
+        void vscode.window.showInformationMessage(`Switched preview to ${fileName}`);
     }
 
     private async updatePreviewWithUri(uri: vscode.Uri): Promise<void> {
@@ -308,16 +329,16 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     }
 
     public async pin(): Promise<void> {
-        const activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor || activeEditor.document.languageId !== 'markdown') {
+        if (!this._currentPreviewUri) {
             void vscode.window.showInformationMessage('Pinning is only available for Markdown files.');
             return;
         }
 
         this._isPinned = true;
-        this._pinnedUri = activeEditor.document.uri;
-        this._pinnedFileName = path.basename(activeEditor.document.fileName) || 'Untitled';
+        this._pinnedUri = this._currentPreviewUri;
+        this._pinnedFileName = path.basename(this._currentPreviewUri.fsPath);
         this.updatePinContext();
+        void vscode.window.showInformationMessage(`プレビューを ${this._pinnedFileName} に固定しました`);
         await this.updatePreview();
     }
 
@@ -327,6 +348,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         this.clearPin();
+        void vscode.window.showInformationMessage('プレビューの固定を解除しました');
         await this.updatePreview();
     }
 
@@ -728,6 +750,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === 'ArrowLeft') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'navigatePrevious' });
+            } else if (event.key === 'p') {
+                event.preventDefault();
+                vscode.postMessage({ command: 'togglePin' });
             }
         });
     </script>
