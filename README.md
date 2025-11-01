@@ -9,8 +9,13 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 - Live updates with theme-aware styling plus manual light/dark overrides when you need to force the look
 - Zoom controls with a persistent default zoom level (50–200%)
 - Quick `Edit`, `Refresh`, `Pin/Unpin`, `Open Settings`, and zoom/theme toolbar commands right inside the view
+- Keyboard navigation with left/right arrow keys to jump across Markdown files in the current folder
 - Mermaid diagram rendering and smart image path resolution for workspace-relative assets
 - Flexible layout: keep it in the sidebar or drag the view into the panel for more room
+
+## What's New in v0.1.5
+- Added left/right arrow key support for hopping to the previous or next Markdown file in the same directory while the preview is following the editor.
+- Automatically refresh the folder listing on create, delete, or rename events so navigation stays in sync with your workspace.
 
 ## Requirements
 - Visual Studio Code 1.74.0 or later

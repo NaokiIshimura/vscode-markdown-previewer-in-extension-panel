@@ -112,6 +112,25 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
+    // Listen for file system changes to invalidate file list cache
+    context.subscriptions.push(
+        vscode.workspace.onDidCreateFiles(() => {
+            provider.invalidateFileListCache();
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.workspace.onDidDeleteFiles(() => {
+            provider.invalidateFileListCache();
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.workspace.onDidRenameFiles(() => {
+            provider.invalidateFileListCache();
+        })
+    );
+
     // Cleanup ThemeManager
     context.subscriptions.push(themeManager);
 }

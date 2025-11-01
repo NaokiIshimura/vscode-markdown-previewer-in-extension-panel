@@ -25,6 +25,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     private readonly _minZoom = 50;
     private readonly _maxZoom = 200;
     private readonly _zoomStep = 10;
+    private _fileListCache: { dirUri: string; files: string[] } | undefined;
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -76,6 +77,18 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             localResourceRoots: this.getLocalResourceRoots()
         };
 
+        // Handle messages from webview
+        webviewView.webview.onDidReceiveMessage((message) => {
+            switch (message.command) {
+                case 'navigateNext':
+                    void this.navigateToNextFile();
+                    break;
+                case 'navigatePrevious':
+                    void this.navigateToPreviousFile();
+                    break;
+            }
+        });
+
         this.updateCanPinContext();
         this.updateCanEditContext();
         this.updatePinContext();
@@ -111,7 +124,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         this.applyZoomChange(this.getDefaultZoomLevel(), true);
     }
 
-    public async updatePreview(): Promise<void> {
+    public async updatePreview(targetUri?: vscode.Uri): Promise<void> {
         if (!this._view) {
             console.log('No webview available');
             return;
@@ -119,7 +132,17 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
         let targetDocument: vscode.TextDocument | undefined;
 
-        if (this._isPinned && this._pinnedUri) {
+        // Use provided URI (for navigation)
+        if (targetUri) {
+            try {
+                targetDocument = await vscode.workspace.openTextDocument(targetUri);
+            } catch (error) {
+                console.warn('Failed to open target document:', error);
+            }
+        }
+
+        // Use pinned URI if pinned
+        if (!targetDocument && this._isPinned && this._pinnedUri) {
             try {
                 targetDocument = await vscode.workspace.openTextDocument(this._pinnedUri);
             } catch (error) {
@@ -128,6 +151,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             }
         }
 
+        // Use active editor as fallback
         if (!targetDocument) {
             const activeEditor = vscode.window.activeTextEditor;
             if (!activeEditor) {
@@ -173,6 +197,101 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const htmlContent = this._md.render(markdownContent, env);
         this.setCanPin(true);
         this._view.webview.html = this.getWebviewContent(this._view.webview, htmlContent);
+    }
+
+    public async navigateToNextFile(): Promise<void> {
+        // Check if pinned
+        if (this._isPinned) {
+            return;
+        }
+
+        // Invalidate cache to get latest directory state
+        this.invalidateFileListCache();
+
+        // Get current URI
+        const currentUri = this._currentPreviewUri ?? vscode.window.activeTextEditor?.document.uri;
+        if (!currentUri) {
+            return;
+        }
+
+        // Get file list
+        const files = await this.getMarkdownFilesInDirectory(currentUri);
+        if (files.length <= 1) {
+            return;
+        }
+
+        // Get current index
+        const currentIndex = this.getCurrentFileIndex(files, currentUri);
+        if (currentIndex === -1) {
+            // Fallback to first file
+            const dirUri = vscode.Uri.joinPath(currentUri, '..');
+            const nextUri = vscode.Uri.joinPath(dirUri, files[0]);
+            await this.updatePreviewWithUri(nextUri);
+            return;
+        }
+
+        // Check if next index is valid
+        if (currentIndex >= files.length - 1) {
+            void vscode.window.showInformationMessage('Already at the last markdown file');
+            return;
+        }
+
+        // Navigate to next file
+        const dirUri = vscode.Uri.joinPath(currentUri, '..');
+        const nextUri = vscode.Uri.joinPath(dirUri, files[currentIndex + 1]);
+        await this.updatePreviewWithUri(nextUri);
+    }
+
+    public async navigateToPreviousFile(): Promise<void> {
+        // Check if pinned
+        if (this._isPinned) {
+            return;
+        }
+
+        // Invalidate cache to get latest directory state
+        this.invalidateFileListCache();
+
+        // Get current URI
+        const currentUri = this._currentPreviewUri ?? vscode.window.activeTextEditor?.document.uri;
+        if (!currentUri) {
+            return;
+        }
+
+        // Get file list
+        const files = await this.getMarkdownFilesInDirectory(currentUri);
+        if (files.length <= 1) {
+            return;
+        }
+
+        // Get current index
+        const currentIndex = this.getCurrentFileIndex(files, currentUri);
+        if (currentIndex === -1) {
+            // Fallback to first file
+            const dirUri = vscode.Uri.joinPath(currentUri, '..');
+            const prevUri = vscode.Uri.joinPath(dirUri, files[0]);
+            await this.updatePreviewWithUri(prevUri);
+            return;
+        }
+
+        // Check if previous index is valid
+        if (currentIndex <= 0) {
+            void vscode.window.showInformationMessage('Already at the first markdown file');
+            return;
+        }
+
+        // Navigate to previous file
+        const dirUri = vscode.Uri.joinPath(currentUri, '..');
+        const prevUri = vscode.Uri.joinPath(dirUri, files[currentIndex - 1]);
+        await this.updatePreviewWithUri(prevUri);
+    }
+
+    private async updatePreviewWithUri(uri: vscode.Uri): Promise<void> {
+        try {
+            await this.updatePreview(uri);
+        } catch (error) {
+            console.error('Failed to open document:', error);
+            void vscode.window.showErrorMessage('Failed to open file');
+        }
     }
 
     public async togglePin(): Promise<void> {
@@ -595,9 +714,21 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
     </style>
     <script>
+        const vscode = acquireVsCodeApi();
+
         mermaid.initialize({
             startOnLoad: true,
             theme: '${mermaidTheme}'
+        });
+
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                vscode.postMessage({ command: 'navigateNext' });
+            } else if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                vscode.postMessage({ command: 'navigatePrevious' });
+            }
         });
     </script>
 </head>
@@ -648,5 +779,49 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     <p>Open a Markdown file to display the preview.</p>
 </body>
 </html>`;
+    }
+
+    private async getMarkdownFilesInDirectory(uri: vscode.Uri): Promise<string[]> {
+        try {
+            // Calculate directory URI
+            const dirUri = vscode.Uri.joinPath(uri, '..');
+            const dirUriString = dirUri.toString();
+
+            // Check cache
+            if (this._fileListCache?.dirUri === dirUriString) {
+                return this._fileListCache.files;
+            }
+
+            // Read directory
+            const entries = await vscode.workspace.fs.readDirectory(dirUri);
+
+            // Filter and sort markdown files
+            const files = entries
+                .filter(([name, type]) =>
+                    type === vscode.FileType.File &&
+                    (name.endsWith('.md') || name.endsWith('.markdown')) &&
+                    !name.startsWith('.')
+                )
+                .map(([name]) => name)
+                .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+            // Update cache
+            this._fileListCache = { dirUri: dirUriString, files };
+
+            return files;
+        } catch (error) {
+            console.error('Failed to read directory for markdown files:', error);
+            void vscode.window.showErrorMessage('Failed to get file list');
+            return [];
+        }
+    }
+
+    private getCurrentFileIndex(files: string[], currentUri: vscode.Uri): number {
+        const fileName = path.basename(currentUri.fsPath);
+        return files.findIndex(file => file === fileName);
+    }
+
+    public invalidateFileListCache(): void {
+        this._fileListCache = undefined;
     }
 }
