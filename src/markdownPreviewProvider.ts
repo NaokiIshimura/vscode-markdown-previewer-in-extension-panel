@@ -229,8 +229,11 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             documentUri: targetDocument.uri
         };
         const htmlContent = this._md.render(markdownContent, env);
+        const relativePath = this.getRelativeFilePath(targetDocument.uri);
+        const isOpenInEditor = this.isFileOpenInEditor(targetDocument.uri);
+        const fileIcon = isOpenInEditor ? '📝' : '📄';
         this.setCanPin(true);
-        this._view.webview.html = this.getWebviewContent(this._view.webview, htmlContent);
+        this._view.webview.html = this.getWebviewContent(this._view.webview, htmlContent, relativePath, fileIcon);
     }
 
     public async navigateToNextFile(): Promise<void> {
@@ -429,9 +432,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             return;
         }
 
-        const activeUri = vscode.window.activeTextEditor?.document.uri;
-        const isDifferent = !activeUri || activeUri.toString() !== targetDocumentUri.toString();
-        this.setCanEdit(isDifferent);
+        // Always enable edit command when a document is being previewed
+        this.setCanEdit(true);
     }
 
     private renderEmptyState(): void {
@@ -641,7 +643,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         return roots;
     }
 
-    private getWebviewContent(webview: vscode.Webview, htmlContent: string): string {
+    private getWebviewContent(webview: vscode.Webview, htmlContent: string, relativePath: string, fileIcon: string): string {
         const themeClass = this.getThemeClass();
         const colorScheme = this._theme === 'dark' ? 'dark' : 'light';
         const fontSize = Math.max(this._minZoom, Math.min(this._maxZoom, this._zoomLevel)) / 100;
@@ -671,6 +673,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             --md-table-border: #d0d4d9;
             --md-table-header-background: #f5f7fa;
             --md-link: #115ea3;
+            --file-path-background: #f5f7fa;
+            --file-path-foreground: #1e1e1e;
+            --file-path-border: #d0d4d9;
         }
 
         body.theme-dark {
@@ -684,6 +689,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             --md-table-border: #3f3f46;
             --md-table-header-background: #2d2d2d;
             --md-link: #3794ff;
+            --file-path-background: #252526;
+            --file-path-foreground: #d4d4d4;
+            --file-path-border: #3f3f46;
         }
 
         body {
@@ -771,9 +779,30 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         ul, ol {
             padding-left: 24px;
         }
-        
+
         li {
             margin: 4px 0;
+        }
+
+        .file-path-header {
+            position: sticky;
+            top: 0;
+            background-color: var(--file-path-background);
+            border-bottom: 1px solid var(--file-path-border);
+            padding: 8px 16px;
+            margin: -16px -16px 16px -16px;
+            font-size: 0.9em;
+            z-index: 100;
+        }
+
+        .file-path {
+            color: var(--file-path-foreground);
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 0.95em;
+        }
+
+        .file-path-label {
+            margin-right: 8px;
         }
     </style>
     <script>
@@ -811,6 +840,10 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     </script>
 </head>
 <body class="${themeClass}">
+    <div class="file-path-header">
+        <span class="file-path-label">${fileIcon}</span>
+        <code class="file-path">${relativePath}</code>
+    </div>
     ${convertedHtml}
 </body>
 </html>`;
@@ -901,5 +934,33 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
     public invalidateFileListCache(): void {
         this._fileListCache = undefined;
+    }
+
+    private getRelativeFilePath(documentUri: vscode.Uri): string {
+        // Handle non-file schemes
+        if (documentUri.scheme !== 'file') {
+            return path.basename(documentUri.fsPath);
+        }
+
+        // Get workspace folder
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(documentUri);
+        if (!workspaceFolder) {
+            // Fallback to just the filename
+            return path.basename(documentUri.fsPath);
+        }
+
+        // Calculate relative path
+        const relativePath = path.relative(
+            workspaceFolder.uri.fsPath,
+            documentUri.fsPath
+        );
+
+        return relativePath;
+    }
+
+    private isFileOpenInEditor(uri: vscode.Uri): boolean {
+        // Check if the file is open in any visible text editor
+        const openEditors = vscode.window.visibleTextEditors;
+        return openEditors.some(editor => editor.document.uri.toString() === uri.toString());
     }
 }
