@@ -432,9 +432,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             return;
         }
 
-        const activeUri = vscode.window.activeTextEditor?.document.uri;
-        const isDifferent = !activeUri || activeUri.toString() !== targetDocumentUri.toString();
-        this.setCanEdit(isDifferent);
+        // Always enable edit command when a document is being previewed
+        this.setCanEdit(true);
     }
 
     private renderEmptyState(): void {

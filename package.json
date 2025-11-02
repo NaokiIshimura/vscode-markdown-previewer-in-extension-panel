@@ -30,7 +30,11 @@
         },
         "markdownPreview.themeMode": {
           "type": "string",
-          "enum": ["auto", "light", "dark"],
+          "enum": [
+            "auto",
+            "light",
+            "dark"
+          ],
           "default": "auto",
           "description": "Theme mode for the Markdown preview. 'auto' syncs with the VS Code theme, 'light' always uses the light theme, and 'dark' always uses the dark theme.",
           "enumDescriptions": [
@@ -120,43 +124,43 @@
     "menus": {
       "view/title": [
         {
-          "command": "markdownPreview.edit",
-          "when": "view == markdownPreview && markdownPreview:canEdit",
-          "group": "navigation@0"
-        },
-        {
           "command": "markdownPreview.pin",
           "when": "view == markdownPreview && markdownPreview:canPin && !markdownPreview:isPinned",
-          "group": "navigation@1"
+          "group": "navigation@0"
         },
         {
           "command": "markdownPreview.unpin",
           "when": "view == markdownPreview && markdownPreview:isPinned",
-          "group": "navigation@1"
+          "group": "navigation@0"
         },
         {
           "command": "markdownPreview.useDarkTheme",
           "when": "view == markdownPreview && !markdownPreview:isDarkTheme",
-          "group": "navigation@2"
+          "group": "navigation@1"
         },
         {
           "command": "markdownPreview.useLightTheme",
           "when": "view == markdownPreview && markdownPreview:isDarkTheme",
-          "group": "navigation@2"
+          "group": "navigation@1"
         },
         {
           "command": "markdownPreview.zoomIn",
           "when": "view == markdownPreview",
-          "group": "navigation@3"
+          "group": "navigation@2"
         },
         {
           "command": "markdownPreview.zoomOut",
           "when": "view == markdownPreview",
-          "group": "navigation@4"
+          "group": "navigation@3"
         },
         {
           "command": "markdownPreview.resetZoom",
           "when": "view == markdownPreview",
+          "group": "navigation@4"
+        },
+        {
+          "command": "markdownPreview.edit",
+          "when": "view == markdownPreview && markdownPreview:canEdit",
           "group": "navigation@5"
         },
         {
