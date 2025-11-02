@@ -782,7 +782,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === '+' || event.key === '=') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'zoomIn' });
-            } else if (event.key === '-') {
+            } else if (event.key === '-' || event.key === '_') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'zoomOut' });
             } else if (event.key === 'r') {
