@@ -13,6 +13,9 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
   - Left/right arrow keys to jump across Markdown files in the current folder (works even when pinned)
   - `p` key to toggle Pin/Unpin while the preview is focused
   - `e` key to open the previewed file in an editor tab
+  - `+` key to zoom in
+  - `-` key to zoom out
+  - `r` key to refresh the preview
 - Mermaid diagram rendering and smart image path resolution for workspace-relative assets
 - Flexible layout: keep it in the sidebar or drag the view into the panel for more room
 
@@ -26,21 +29,24 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 3. Use the pin button or press `p` (when the preview is focused) to keep the **currently previewed file** visible while browsing other notes. Pin/Unpin operations show confirmation messages to let you know they succeeded.
 4. When the preview shows a different file than the one you are editing, press `e` or click the `Edit` button to open it in an editor tab instantly.
 5. Navigate between Markdown files with arrow keys (`←` / `→`)—even when pinned! The preview updates and shows a confirmation message.
-6. Toggle the light/dark button or tweak zoom levels from the toolbar whenever the default styling does not match your needs.
-7. Hit `Refresh` if you want to force a redraw (for example after external file changes or when mermaid diagrams need a rerun).
+6. Adjust zoom levels with `+` and `-` keys or use the toolbar buttons. The current zoom level is displayed when you zoom.
+7. Press `r` or hit `Refresh` button if you want to force a redraw (for example after external file changes or when mermaid diagrams need a rerun).
 
 ### View toolbar commands
-- `Edit` — reopen the previewed document in an editor tab when it is not active.
-- `Pin` / `Unpin` — freeze the preview on the **currently displayed** Markdown file (not the active editor) or return to follow mode. A message confirms the action.
+- `Edit [e]` — reopen the previewed document in an editor tab when it is not active.
+- `Pin [p]` / `Unpin [p]` — freeze the preview on the **currently displayed** Markdown file (not the active editor) or return to follow mode. A message confirms the action.
 - `Use Light Theme` / `Use Dark Theme` — override automatic theming for the preview only.
-- `Zoom In`, `Zoom Out`, `Reset Zoom` — adjust rendering scale; the default persists across sessions.
-- `Refresh` — force the markdown to render again.
+- `Zoom In [+]`, `Zoom Out [-]`, `Reset Zoom` — adjust rendering scale; the default persists across sessions. Displays current zoom level.
+- `Refresh [r]` — force the markdown to render again.
 - `Open Settings` — jump straight to the extension's configuration section.
 
 ### Keyboard shortcuts (when preview is focused)
 - `←` / `→` — Navigate to the previous or next Markdown file in the current directory (works even when pinned)
 - `p` — Toggle Pin/Unpin for hands-free workflow
 - `e` — Open the previewed file in an editor tab
+- `+` — Zoom in (shows current zoom level)
+- `-` — Zoom out (shows current zoom level)
+- `r` — Refresh the preview
 
 ### Settings
 - `markdownPreview.defaultZoomLevel` — choose the default zoom percentage (50–200, default 100).

@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `white-space: pre` CSS property to `<pre>` elements
   - Added specific styling for `<pre><code>` elements to override inline code styles
 
+### Added
+- Keyboard shortcuts for zoom and refresh operations:
+  - `+` or `=` key for zoom in
+  - `-` or `_` key for zoom out
+  - `r` key for refresh
+- Feedback messages for zoom operations:
+  - Display current zoom level when zooming in/out (e.g., "Zoom: 110%")
+  - Show message when already at maximum/minimum zoom level
+- Keyboard shortcut indicators in command titles:
+  - Edit [e], Pin [p], Unpin [p], Zoom In [+], Zoom Out [-], Refresh [r]
+
 ### Improved
 - Regular text content now preserves line breaks
   - Enabled markdown-it `breaks` option to convert single line breaks to `<br>` tags
