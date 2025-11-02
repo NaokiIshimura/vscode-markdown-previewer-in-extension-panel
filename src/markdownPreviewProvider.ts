@@ -35,7 +35,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         this._md = new MarkdownIt({
             html: true,
             linkify: true,
-            typographer: true
+            typographer: true,
+            breaks: true
         });
         this._theme = this.getInitialTheme();
         this.updateThemeContext();
@@ -92,6 +93,15 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 case 'edit':
                     void this.edit();
                     break;
+                case 'zoomIn':
+                    this.zoomIn();
+                    break;
+                case 'zoomOut':
+                    this.zoomOut();
+                    break;
+                case 'refresh':
+                    this.refresh();
+                    break;
             }
         });
 
@@ -114,11 +124,29 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     }
 
     public zoomIn(): void {
-        this.applyZoomChange(this._zoomLevel + this._zoomStep);
+        const targetZoom = this._zoomLevel + this._zoomStep;
+        const clamped = this.clampZoom(targetZoom);
+
+        if (clamped === this._maxZoom && this._zoomLevel === this._maxZoom) {
+            void vscode.window.showInformationMessage('Already at maximum zoom level');
+            return;
+        }
+
+        this.applyZoomChange(targetZoom);
+        void vscode.window.showInformationMessage(`Zoom: ${clamped}%`);
     }
 
     public zoomOut(): void {
-        this.applyZoomChange(this._zoomLevel - this._zoomStep);
+        const targetZoom = this._zoomLevel - this._zoomStep;
+        const clamped = this.clampZoom(targetZoom);
+
+        if (clamped === this._minZoom && this._zoomLevel === this._minZoom) {
+            void vscode.window.showInformationMessage('Already at minimum zoom level');
+            return;
+        }
+
+        this.applyZoomChange(targetZoom);
+        void vscode.window.showInformationMessage(`Zoom: ${clamped}%`);
     }
 
     public resetZoom(): void {
@@ -692,8 +720,16 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             border-radius: 6px;
             overflow-x: auto;
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            white-space: pre;
         }
-        
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            white-space: pre;
+        }
+
         blockquote {
             border-left: 4px solid var(--md-quote-border);
             background-color: var(--md-quote-background);
@@ -761,6 +797,15 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === 'e') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'edit' });
+            } else if (event.key === '+' || event.key === '=') {
+                event.preventDefault();
+                vscode.postMessage({ command: 'zoomIn' });
+            } else if (event.key === '-' || event.key === '_') {
+                event.preventDefault();
+                vscode.postMessage({ command: 'zoomOut' });
+            } else if (event.key === 'r') {
+                event.preventDefault();
+                vscode.postMessage({ command: 'refresh' });
             }
         });
     </script>
