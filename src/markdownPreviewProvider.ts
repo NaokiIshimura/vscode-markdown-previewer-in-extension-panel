@@ -35,7 +35,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         this._md = new MarkdownIt({
             html: true,
             linkify: true,
-            typographer: true
+            typographer: true,
+            breaks: true
         });
         this._theme = this.getInitialTheme();
         this.updateThemeContext();
