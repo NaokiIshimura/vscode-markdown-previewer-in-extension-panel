@@ -62,29 +62,29 @@
     "commands": [
       {
         "command": "markdownPreview.refresh",
-        "title": "Refresh",
+        "title": "Refresh [r]",
         "icon": "$(refresh)"
       },
       {
         "command": "markdownPreview.edit",
-        "title": "Edit",
+        "title": "Edit [e]",
         "icon": "$(edit)",
         "enablement": "markdownPreview:canEdit"
       },
       {
         "command": "markdownPreview.pin",
-        "title": "Pin",
+        "title": "Pin [p]",
         "icon": "$(pin)",
         "enablement": "markdownPreview:canPin"
       },
       {
         "command": "markdownPreview.unpin",
-        "title": "Unpin",
+        "title": "Unpin [p]",
         "icon": "$(pinned)"
       },
       {
         "command": "markdownPreview.togglePin",
-        "title": "Toggle Pin"
+        "title": "Toggle Pin [p]"
       },
       {
         "command": "markdownPreview.useLightTheme",
@@ -98,12 +98,12 @@
       },
       {
         "command": "markdownPreview.zoomIn",
-        "title": "Zoom In",
+        "title": "Zoom In [+]",
         "icon": "$(zoom-in)"
       },
       {
         "command": "markdownPreview.zoomOut",
-        "title": "Zoom Out",
+        "title": "Zoom Out [-]",
         "icon": "$(zoom-out)"
       },
       {

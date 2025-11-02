@@ -93,6 +93,15 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 case 'edit':
                     void this.edit();
                     break;
+                case 'zoomIn':
+                    this.zoomIn();
+                    break;
+                case 'zoomOut':
+                    this.zoomOut();
+                    break;
+                case 'refresh':
+                    this.refresh();
+                    break;
             }
         });
 
@@ -770,6 +779,15 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === 'e') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'edit' });
+            } else if (event.key === '+' || event.key === '=') {
+                event.preventDefault();
+                vscode.postMessage({ command: 'zoomIn' });
+            } else if (event.key === '-') {
+                event.preventDefault();
+                vscode.postMessage({ command: 'zoomOut' });
+            } else if (event.key === 'r') {
+                event.preventDefault();
+                vscode.postMessage({ command: 'refresh' });
             }
         });
     </script>
