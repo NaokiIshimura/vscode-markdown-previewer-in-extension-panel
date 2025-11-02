@@ -17,7 +17,8 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 - Flexible layout: keep it in the sidebar or drag the view into the panel for more room
 
 ## What's New in v0.1.8
-- **Fixed**: Code blocks now correctly preserve line breaks in the preview
+- **Fixed**: Code blocks now correctly preserve line breaks and whitespace in the preview
+- **Improved**: Regular text content also preserves line breaks (enabled markdown-it `breaks` option)
 
 ## What's New in v0.1.6
 - **Fixed**: Pin button now correctly pins the file shown in the preview (not the active editor)
