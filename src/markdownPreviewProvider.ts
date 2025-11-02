@@ -124,11 +124,29 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     }
 
     public zoomIn(): void {
-        this.applyZoomChange(this._zoomLevel + this._zoomStep);
+        const targetZoom = this._zoomLevel + this._zoomStep;
+        const clamped = this.clampZoom(targetZoom);
+
+        if (clamped === this._maxZoom && this._zoomLevel === this._maxZoom) {
+            void vscode.window.showInformationMessage('Already at maximum zoom level');
+            return;
+        }
+
+        this.applyZoomChange(targetZoom);
+        void vscode.window.showInformationMessage(`Zoom: ${clamped}%`);
     }
 
     public zoomOut(): void {
-        this.applyZoomChange(this._zoomLevel - this._zoomStep);
+        const targetZoom = this._zoomLevel - this._zoomStep;
+        const clamped = this.clampZoom(targetZoom);
+
+        if (clamped === this._minZoom && this._zoomLevel === this._minZoom) {
+            void vscode.window.showInformationMessage('Already at minimum zoom level');
+            return;
+        }
+
+        this.applyZoomChange(targetZoom);
+        void vscode.window.showInformationMessage(`Zoom: ${clamped}%`);
     }
 
     public resetZoom(): void {

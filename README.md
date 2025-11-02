@@ -16,22 +16,6 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 - Mermaid diagram rendering and smart image path resolution for workspace-relative assets
 - Flexible layout: keep it in the sidebar or drag the view into the panel for more room
 
-## What's New in v0.1.8
-- **Fixed**: Code blocks now correctly preserve line breaks and whitespace in the preview
-- **Improved**: Regular text content also preserves line breaks (enabled markdown-it `breaks` option)
-
-## What's New in v0.1.6
-- **Fixed**: Pin button now correctly pins the file shown in the preview (not the active editor)
-- **Added**: Feedback messages confirm when you pin or unpin (e.g., "Pinned preview to README.md")
-- **Added**: Press `p` while the preview is focused to quickly toggle Pin/Unpin
-- **Added**: Press `e` to open the previewed file in an editor tab
-- **Improved**: Arrow keys now work even when pinned, and automatically update the pin target
-- **Improved**: File navigation shows confirmation messages (e.g., "Switched preview to README.md")
-
-## What's New in v0.1.5
-- Added left/right arrow key support for hopping to the previous or next Markdown file in the same directory while the preview is following the editor.
-- Automatically refresh the folder listing on create, delete, or rename events so navigation stays in sync with your workspace.
-
 ## Requirements
 - Visual Studio Code 1.74.0 or later
 - Markdown files (`.md`) in the current workspace
