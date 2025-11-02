@@ -692,6 +692,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             border-radius: 6px;
             overflow-x: auto;
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            white-space: pre;
         }
         
         blockquote {
