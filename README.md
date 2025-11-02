@@ -8,6 +8,7 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 
 | Feature | Shortcut | Description |
 | --- | --- | --- |
+| File Path Display | Always visible | Shows the relative path from project root at the top of the preview |
 | Light Theme<br>Dark Theme | Toolbar only | Switch between light and dark theme for the preview |
 | Zoom In<br>Zoom Out | `+`<br>`-` | Zoom in/out the preview (displays current zoom level) |
 | Reset Zoom | Toolbar only | Reset zoom level to default |
