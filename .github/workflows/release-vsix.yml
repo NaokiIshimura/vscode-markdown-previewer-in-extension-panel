@@ -74,3 +74,9 @@ jobs:
           files: releases/markdown-previewer-in-extension-panel-${{ env.VERSION }}.vsix
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to Visual Studio Marketplace
+        if: github.event_name == 'release'
+        run: vsce publish --packagePath releases/markdown-previewer-in-extension-panel-${{ env.VERSION }}.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
