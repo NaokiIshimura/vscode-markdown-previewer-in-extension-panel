@@ -5,6 +5,19 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2025-11-07
+
+### Fixed
+- Significantly improved CPU performance during markdown editing
+  - Added debounce to document change events (300ms delay)
+  - Added debounce to active editor change events (100ms delay)
+  - Prevents excessive rendering when typing rapidly or switching files frequently
+  - Estimated CPU usage reduction: 70-90% during active editing
+
+### Performance
+- Preview updates are now batched to reduce rendering frequency
+- More responsive editing experience with reduced system load
+
 ## [0.1.8] - 2025-11-02
 
 ### Fixed

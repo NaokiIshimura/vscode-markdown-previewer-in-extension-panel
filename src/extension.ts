@@ -9,6 +9,12 @@ export function activate(context: vscode.ExtensionContext) {
     // Pass themeManager to MarkdownPreviewProvider
     const provider = new MarkdownPreviewProvider(context.extensionUri, themeManager);
 
+    // Debounce timers
+    let documentChangeTimer: NodeJS.Timeout | undefined;
+    let editorChangeTimer: NodeJS.Timeout | undefined;
+    const DOCUMENT_CHANGE_DEBOUNCE = 300; // 300ms
+    const EDITOR_CHANGE_DEBOUNCE = 100; // 100ms
+
     // Register the webview provider
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider('markdownPreview', provider, {
@@ -86,19 +92,31 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // Listen for active editor changes
+    // Listen for active editor changes with debounce
     context.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor(() => {
-            void provider.updatePreview();
+            if (editorChangeTimer) {
+                clearTimeout(editorChangeTimer);
+            }
+            editorChangeTimer = setTimeout(() => {
+                void provider.updatePreview();
+                editorChangeTimer = undefined;
+            }, EDITOR_CHANGE_DEBOUNCE);
         })
     );
 
-    // Listen for document changes
+    // Listen for document changes with debounce
     context.subscriptions.push(
         vscode.workspace.onDidChangeTextDocument((event) => {
             const activeDocument = vscode.window.activeTextEditor?.document;
             if (event.document === activeDocument || provider.isPinnedDocument(event.document.uri)) {
-                void provider.updatePreview();
+                if (documentChangeTimer) {
+                    clearTimeout(documentChangeTimer);
+                }
+                documentChangeTimer = setTimeout(() => {
+                    void provider.updatePreview();
+                    documentChangeTimer = undefined;
+                }, DOCUMENT_CHANGE_DEBOUNCE);
             }
         })
     );
