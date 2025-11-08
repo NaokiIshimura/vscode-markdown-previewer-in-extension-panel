@@ -41,8 +41,9 @@ Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window
 
 ## Tips & Known Limitations
 - Mermaid diagrams load from the jsDelivr CDN; an offline environment will skip diagram rendering.
-- Images and links resolve using VS Code’s workspace paths—ensure referenced files exist in reachable locations.
-- When a non-Markdown document is active, the view shows a helper message until you return to a `.md` file.
+- Images and links resolve using VS Code's workspace paths—ensure referenced files exist in reachable locations.
+- When no Markdown file is open, the preview automatically shows the workspace's README.md if available.
+- The preview persists even when switching to non-Markdown files, allowing you to keep your documentation visible while working on code.
 
 ## Feedback
 Please report bugs or request features via GitHub Issues. Screenshots and concise reproduction steps help us respond quickly.

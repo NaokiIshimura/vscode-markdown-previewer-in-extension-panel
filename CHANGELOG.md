@@ -5,6 +5,24 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2025-11-09
+
+### Added
+- Automatic README.md preview when no Markdown file is open
+  - When the extension activates without a Markdown file in the editor, it automatically displays the workspace's README.md
+  - Provides immediate access to project documentation without manual file opening
+
+### Changed
+- Preview persistence behavior when switching to non-Markdown files
+  - The preview now continues displaying the current Markdown content when switching to non-Markdown files
+  - Allows users to keep documentation visible while working on code files
+  - Switching back to a Markdown file updates the preview to show that file
+
+### Improved
+- Better handling of editor state changes
+  - Intelligently decides which Markdown content to display based on current editor state
+  - Maintains preview continuity across different editor activities
+
 ## [0.2.1] - 2025-11-07
 
 ### Fixed
