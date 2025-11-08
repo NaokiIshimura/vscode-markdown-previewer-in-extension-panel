@@ -185,28 +185,80 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             }
         }
 
-        // Use active editor as fallback
+        // Check active editor
         if (!targetDocument) {
             const activeEditor = vscode.window.activeTextEditor;
-            if (!activeEditor) {
-                console.log('No active editor');
-                this.setCanPin(false);
-                this.setCanEdit(false);
-                this.renderEmptyState();
-                return;
+            if (activeEditor && activeEditor.document.languageId === 'markdown') {
+                targetDocument = activeEditor.document;
             }
-            targetDocument = activeEditor.document;
+        }
+
+        // If no target document yet, try to keep current preview or fallback to README.md
+        if (!targetDocument) {
+            // Try to keep current preview if exists
+            if (this._currentPreviewUri) {
+                try {
+                    targetDocument = await vscode.workspace.openTextDocument(this._currentPreviewUri);
+                    console.log('Keeping current preview');
+                } catch (error) {
+                    console.warn('Failed to keep current preview:', error);
+                    this._currentPreviewUri = undefined;
+                }
+            }
+
+            // If still no target, try to load README.md
+            if (!targetDocument) {
+                targetDocument = await this.findReadmeDocument();
+                if (!targetDocument) {
+                    console.log('No markdown document to preview');
+                    this.setCanPin(false);
+                    this.setCanEdit(false);
+                    this.renderEmptyState();
+                    return;
+                }
+            }
         }
 
         if (targetDocument.languageId !== 'markdown') {
             console.log('Document is not markdown:', targetDocument.languageId);
-            if (this._isPinned) {
-                this.clearPin();
+
+            // Keep current preview if exists
+            if (this._currentPreviewUri) {
+                try {
+                    targetDocument = await vscode.workspace.openTextDocument(this._currentPreviewUri);
+                    console.log('Keeping current preview (non-markdown active)');
+                } catch (error) {
+                    console.warn('Failed to keep current preview:', error);
+
+                    // Try to load README.md as fallback
+                    const readmeDoc = await this.findReadmeDocument();
+                    if (readmeDoc) {
+                        targetDocument = readmeDoc;
+                    } else {
+                        if (this._isPinned) {
+                            this.clearPin();
+                        }
+                        this.setCanPin(false);
+                        this.setCanEdit(false);
+                        this.renderEmptyState();
+                        return;
+                    }
+                }
+            } else {
+                // Try to load README.md as fallback
+                const readmeDoc = await this.findReadmeDocument();
+                if (readmeDoc) {
+                    targetDocument = readmeDoc;
+                } else {
+                    if (this._isPinned) {
+                        this.clearPin();
+                    }
+                    this.setCanPin(false);
+                    this.setCanEdit(false);
+                    this.renderEmptyState();
+                    return;
+                }
             }
-            this.setCanPin(false);
-            this.setCanEdit(false);
-            this.renderEmptyState();
-            return;
         }
 
         console.log('Updating markdown preview');
@@ -962,5 +1014,33 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         // Check if the file is open in any visible text editor
         const openEditors = vscode.window.visibleTextEditors;
         return openEditors.some(editor => editor.document.uri.toString() === uri.toString());
+    }
+
+    private async findReadmeDocument(): Promise<vscode.TextDocument | undefined> {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+            return undefined;
+        }
+
+        // Try to find README.md in the first workspace folder
+        const workspaceRoot = workspaceFolders[0].uri;
+        const readmeVariants = ['README.md', 'readme.md', 'Readme.md', 'README.MD'];
+
+        for (const variant of readmeVariants) {
+            try {
+                const readmeUri = vscode.Uri.joinPath(workspaceRoot, variant);
+                const document = await vscode.workspace.openTextDocument(readmeUri);
+                if (document.languageId === 'markdown') {
+                    console.log(`Found README at ${variant}`);
+                    return document;
+                }
+            } catch (error) {
+                // File doesn't exist, try next variant
+                continue;
+            }
+        }
+
+        console.log('No README.md found in workspace root');
+        return undefined;
     }
 }
