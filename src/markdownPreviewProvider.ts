@@ -758,12 +758,37 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         
         h1, h2, h3, h4, h5, h6 {
             color: var(--md-foreground);
-            margin-top: 24px;
             margin-bottom: 16px;
         }
-        
-        h1 { border-bottom: 1px solid var(--md-heading-border); }
-        h2 { border-bottom: 1px solid var(--md-heading-border); }
+
+        h1 {
+            margin-top: 32px;
+            border-bottom: 1px solid var(--md-heading-border);
+        }
+
+        h1:first-child {
+            margin-top: 0;
+        }
+
+        h2 {
+            margin-top: 28px;
+            border-bottom: 1px solid var(--md-heading-border);
+        }
+
+        h3 {
+            margin-top: 24px;
+        }
+
+        h4, h5, h6 {
+            margin-top: 20px;
+        }
+
+        hr {
+            margin-top: 28px;
+            margin-bottom: 28px;
+            border: none;
+            border-top: 1px solid var(--md-heading-border);
+        }
         
         code {
             background-color: var(--md-code-background);

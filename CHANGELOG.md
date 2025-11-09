@@ -5,6 +5,16 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] - 2025-11-09
+
+### Changed
+- Improved spacing between markdown sections with adjusted margins for headers and horizontal rules
+  - h1 headers now have 32px top margin (0px for first-child)
+  - h2 headers now have 28px top margin
+  - h3 headers now have 24px top margin
+  - h4-h6 headers now have 20px top margin
+  - Horizontal rules (hr) now have 28px top and bottom margins
+
 ## [0.2.3] - 2025-11-09
 
 ### Added
