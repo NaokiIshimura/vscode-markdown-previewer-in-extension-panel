@@ -2,7 +2,9 @@
 
 A VS Code extension that keeps a fully featured Markdown preview docked in the sidebar (or panel) so you can keep writing without juggling editor tabs.
 
-![demo](assets/demo.gif)
+![demo2](assets/demo2.gif)
+
+![demo3](assets/demo3.gif)
 
 ## Features
 
