@@ -46,6 +46,7 @@ Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window
 - Images and links resolve using VS Code's workspace paths—ensure referenced files exist in reachable locations.
 - When no Markdown file is open, the preview automatically shows the workspace's README.md if available.
 - The preview persists even when switching to non-Markdown files, allowing you to keep your documentation visible while working on code.
+- When switching to a different Markdown file, the scroll position automatically resets to the top for a fresh viewing experience.
 
 ## Feedback
 Please report bugs or request features via GitHub Issues. Screenshots and concise reproduction steps help us respond quickly.

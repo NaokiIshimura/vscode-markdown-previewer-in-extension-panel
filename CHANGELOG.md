@@ -5,6 +5,13 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5] - 2025-11-17
+
+### Fixed
+- Scroll position now resets to the top when switching to a different Markdown file
+  - Ensures a fresh viewing experience for each document
+  - Prevents unexpected scroll positions when navigating between files
+
 ## [0.2.4] - 2025-11-09
 
 ### Changed
