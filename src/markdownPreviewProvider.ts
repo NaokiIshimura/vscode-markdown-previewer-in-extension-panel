@@ -885,14 +885,12 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     <script>
         const vscode = acquireVsCodeApi();
 
+        // Reset scroll position immediately when script executes
+        window.scrollTo(0, 0);
+
         mermaid.initialize({
             startOnLoad: true,
             theme: '${mermaidTheme}'
-        });
-
-        // Reset scroll position to top when content is loaded
-        window.addEventListener('DOMContentLoaded', () => {
-            window.scrollTo(0, 0);
         });
 
         window.addEventListener('keydown', (event) => {
