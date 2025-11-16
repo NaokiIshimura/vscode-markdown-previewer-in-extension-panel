@@ -1121,6 +1121,14 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === 'r') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'refresh' });
+            } else if (event.key === 't') {
+                event.preventDefault();
+                const tocContainer = document.getElementById('toc-container');
+                const tocToggle = document.getElementById('toc-toggle');
+                if (tocContainer && tocToggle) {
+                    tocContainer.classList.toggle('collapsed');
+                    tocToggle.textContent = tocContainer.classList.contains('collapsed') ? '▶' : '▼';
+                }
             }
         });
     </script>
@@ -1133,7 +1141,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     <div id="toc-container" class="toc-container">
         <div class="toc-header">
             <span class="toc-title">Table of Contents</span>
-            <button id="toc-toggle" class="toc-toggle">▼</button>
+            <button id="toc-toggle" class="toc-toggle" title="Toggle Table of Contents [t]">▼</button>
         </div>
         <ul id="toc-list" class="toc-list"></ul>
     </div>
