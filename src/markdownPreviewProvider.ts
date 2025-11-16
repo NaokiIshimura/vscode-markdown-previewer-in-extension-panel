@@ -267,6 +267,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             this._pinnedFileName = fileName;
         }
         this.updateViewTitle(fileName);
+
+        // Check if document has changed to reset scroll position
+        const isDocumentChanged = this._currentPreviewUri?.toString() !== targetDocument.uri.toString();
         this._currentPreviewUri = targetDocument.uri;
         this.updateEditAvailability(targetDocument.uri);
 
@@ -286,6 +289,14 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const fileIcon = isOpenInEditor ? '📝' : '📄';
         this.setCanPin(true);
         this._view.webview.html = this.getWebviewContent(this._view.webview, htmlContent, relativePath, fileIcon);
+
+        // Reset scroll position if document has changed
+        if (isDocumentChanged) {
+            // Use setTimeout to ensure the HTML is updated before sending the message
+            setTimeout(() => {
+                this._view?.webview.postMessage({ command: 'resetScroll' });
+            }, 100);
+        }
     }
 
     public async navigateToNextFile(): Promise<void> {
@@ -885,12 +896,17 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     <script>
         const vscode = acquireVsCodeApi();
 
-        // Reset scroll position immediately when script executes
-        window.scrollTo(0, 0);
-
         mermaid.initialize({
             startOnLoad: true,
             theme: '${mermaidTheme}'
+        });
+
+        // Handle messages from the extension
+        window.addEventListener('message', event => {
+            const message = event.data;
+            if (message.command === 'resetScroll') {
+                window.scrollTo(0, 0);
+            }
         });
 
         window.addEventListener('keydown', (event) => {
