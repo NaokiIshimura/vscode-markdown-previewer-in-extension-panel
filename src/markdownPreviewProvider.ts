@@ -1,11 +1,18 @@
 import * as vscode from 'vscode';
 import * as MarkdownIt from 'markdown-it';
 import * as path from 'path';
+import anchor from 'markdown-it-anchor';
 import { ThemeManager, EffectiveTheme } from './themeManager';
 
 interface MarkdownRenderEnv {
     webview?: vscode.Webview;
     documentUri?: vscode.Uri;
+}
+
+interface HeadingInfo {
+    level: number;
+    text: string;
+    id: string;
 }
 
 type PreviewTheme = 'light' | 'dark';
@@ -38,6 +45,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             typographer: true,
             breaks: true
         });
+
+        // Add anchor plugin for heading IDs
+        this._md.use(anchor, {
+            permalink: false,
+            slugify: (s: string) => encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, '-'))
+        });
+
         this._theme = this.getInitialTheme();
         this.updateThemeContext();
 
@@ -284,11 +298,12 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             documentUri: targetDocument.uri
         };
         const htmlContent = this._md.render(markdownContent, env);
+        const headings = this.extractHeadings(markdownContent);
         const relativePath = this.getRelativeFilePath(targetDocument.uri);
         const isOpenInEditor = this.isFileOpenInEditor(targetDocument.uri);
         const fileIcon = isOpenInEditor ? '📝' : '📄';
         this.setCanPin(true);
-        this._view.webview.html = this.getWebviewContent(this._view.webview, htmlContent, relativePath, fileIcon);
+        this._view.webview.html = this.getWebviewContent(this._view.webview, htmlContent, relativePath, fileIcon, headings);
 
         // Reset scroll position if document has changed
         if (isDocumentChanged) {
@@ -706,12 +721,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         return roots;
     }
 
-    private getWebviewContent(webview: vscode.Webview, htmlContent: string, relativePath: string, fileIcon: string): string {
+    private getWebviewContent(webview: vscode.Webview, htmlContent: string, relativePath: string, fileIcon: string, headings: HeadingInfo[]): string {
         const themeClass = this.getThemeClass();
         const colorScheme = this._theme === 'dark' ? 'dark' : 'light';
         const fontSize = Math.max(this._minZoom, Math.min(this._maxZoom, this._zoomLevel)) / 100;
         const mermaidTheme = this.getMermaidTheme();
         const convertedHtml = this.convertMermaidBlocks(htmlContent);
+        const headingsJson = JSON.stringify(headings);
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -770,6 +786,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         h1, h2, h3, h4, h5, h6 {
             color: var(--md-foreground);
             margin-bottom: 16px;
+            scroll-margin-top: 70px;
         }
 
         h1 {
@@ -892,6 +909,125 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         .file-path-label {
             margin-right: 8px;
         }
+
+        .toc-container {
+            position: fixed;
+            top: 60px;
+            right: 16px;
+            max-width: 300px;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+            background-color: var(--file-path-background);
+            border: 1px solid var(--file-path-border);
+            border-radius: 6px;
+            padding: 12px;
+            z-index: 99;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        body.theme-dark .toc-container {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .toc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--file-path-border);
+        }
+
+        .toc-title {
+            font-weight: bold;
+            font-size: 0.9em;
+            color: var(--md-foreground);
+        }
+
+        .toc-toggle {
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--md-foreground);
+            font-size: 1em;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .toc-toggle:hover {
+            opacity: 0.7;
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .toc-item {
+            margin: 4px 0;
+        }
+
+        .toc-link {
+            display: block;
+            color: var(--md-link);
+            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+
+        .toc-link:hover {
+            background-color: var(--md-code-background);
+        }
+
+        .toc-item.level-1 .toc-link {
+            padding-left: 8px;
+            font-weight: 600;
+        }
+
+        .toc-item.level-2 .toc-link {
+            padding-left: 16px;
+        }
+
+        .toc-item.level-3 .toc-link {
+            padding-left: 24px;
+        }
+
+        .toc-item.level-4 .toc-link {
+            padding-left: 32px;
+        }
+
+        .toc-item.level-5 .toc-link {
+            padding-left: 40px;
+        }
+
+        .toc-item.level-6 .toc-link {
+            padding-left: 48px;
+        }
+
+        .toc-container.collapsed .toc-list {
+            display: none;
+        }
+
+        .toc-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .toc-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .toc-container::-webkit-scrollbar-thumb {
+            background: var(--md-quote-border);
+            border-radius: 4px;
+        }
+
+        .toc-container::-webkit-scrollbar-thumb:hover {
+            background: var(--md-heading-border);
+        }
     </style>
     <script>
         const vscode = acquireVsCodeApi();
@@ -908,6 +1044,60 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 window.scrollTo(0, 0);
             }
         });
+
+        // Initialize table of contents
+        const headings = ${headingsJson};
+
+        function initTableOfContents() {
+            const tocContainer = document.getElementById('toc-container');
+            const tocList = document.getElementById('toc-list');
+            const tocToggle = document.getElementById('toc-toggle');
+
+            if (!tocContainer || !tocList || !tocToggle) {
+                return;
+            }
+
+            // Hide TOC if no headings
+            if (headings.length === 0) {
+                tocContainer.style.display = 'none';
+                return;
+            }
+
+            // Generate TOC items
+            headings.forEach(heading => {
+                const li = document.createElement('li');
+                li.className = 'toc-item level-' + heading.level;
+
+                const link = document.createElement('a');
+                link.className = 'toc-link';
+                link.textContent = heading.text;
+                link.href = '#' + heading.id;
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const target = document.getElementById(heading.id);
+                    if (target) {
+                        // CSS scroll-margin-top will automatically handle the offset
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+
+                li.appendChild(link);
+                tocList.appendChild(li);
+            });
+
+            // Toggle TOC collapse/expand
+            tocToggle.addEventListener('click', () => {
+                tocContainer.classList.toggle('collapsed');
+                tocToggle.textContent = tocContainer.classList.contains('collapsed') ? '▶' : '▼';
+            });
+        }
+
+        // Initialize TOC when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTableOfContents);
+        } else {
+            initTableOfContents();
+        }
 
         window.addEventListener('keydown', (event) => {
             if (event.key === 'ArrowRight') {
@@ -939,6 +1129,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     <div class="file-path-header">
         <span class="file-path-label">${fileIcon}</span>
         <code class="file-path">${relativePath}</code>
+    </div>
+    <div id="toc-container" class="toc-container">
+        <div class="toc-header">
+            <span class="toc-title">Table of Contents</span>
+            <button id="toc-toggle" class="toc-toggle">▼</button>
+        </div>
+        <ul id="toc-list" class="toc-list"></ul>
     </div>
     ${convertedHtml}
 </body>
@@ -1052,6 +1249,33 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         );
 
         return relativePath;
+    }
+
+    private extractHeadings(markdownContent: string): HeadingInfo[] {
+        const headings: HeadingInfo[] = [];
+        const tokens = this._md.parse(markdownContent, {});
+
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i];
+            if (token.type === 'heading_open') {
+                const level = parseInt(token.tag.substring(1), 10);
+                // Only include h1, h2, and h3 headings in TOC
+                if (level <= 3) {
+                    const contentToken = tokens[i + 1];
+                    if (contentToken && contentToken.type === 'inline' && contentToken.content) {
+                        const text = contentToken.content;
+                        const id = token.attrGet('id') || this.slugify(text);
+                        headings.push({ level, text, id });
+                    }
+                }
+            }
+        }
+
+        return headings;
+    }
+
+    private slugify(text: string): string {
+        return encodeURIComponent(String(text).trim().toLowerCase().replace(/\s+/g, '-'));
     }
 
     private isFileOpenInEditor(uri: vscode.Uri): boolean {
