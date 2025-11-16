@@ -5,6 +5,22 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - 2025-11-17
+
+### Added
+- Table of Contents navigation panel in the top-right corner of the preview
+  - Automatically extracts h1-h3 headings from the Markdown document
+  - Displays headings in a hierarchical list with proper indentation
+  - Click on any heading to smoothly scroll to that section
+  - Collapsible panel with toggle button (▼/▶) to save screen space
+  - Adaptive styling that works with both light and dark themes
+  - Custom scrollbar for better visual integration
+
+### Technical
+- Integrated `markdown-it-anchor` plugin to automatically generate IDs for headings
+- Enhanced heading extraction logic to parse Markdown AST and collect heading information
+- Implemented smooth scrolling behavior for better user experience
+
 ## [0.2.5] - 2025-11-17
 
 ### Fixed
