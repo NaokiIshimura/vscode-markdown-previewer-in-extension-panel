@@ -1143,9 +1143,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         <code class="file-path">${relativePath}</code>
     </div>
     <div id="toc-container" class="toc-container">
-        <div class="toc-header">
+        <div class="toc-header" title="Toggle Table of Contents [t]">
             <span class="toc-title">Table of Contents</span>
-            <button id="toc-toggle" class="toc-toggle" title="Toggle Table of Contents [t]">▼</button>
+            <button id="toc-toggle" class="toc-toggle">▼</button>
         </div>
         <ul id="toc-list" class="toc-list"></ul>
     </div>
