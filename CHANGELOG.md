@@ -5,6 +5,16 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2025-11-18
+
+### Changed
+- Moved Headings panel to the file path header area
+  - Headings title now appears in the top sticky header alongside the file path
+  - Headings list dropdown spans from the header area into the content area
+  - Maintains hover-to-expand functionality for better space efficiency
+  - Provides more integrated UI with better visual hierarchy
+  - Creates a cleaner, more organized interface with navigation at the top
+
 ## [0.3.1] - 2025-11-17
 
 ### Changed

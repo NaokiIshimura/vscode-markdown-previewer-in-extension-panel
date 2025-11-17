@@ -898,6 +898,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             margin: -16px -16px 16px -16px;
             font-size: 0.9em;
             z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-path-section {
+            flex: 1;
         }
 
         .file-path {
@@ -911,11 +918,31 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         .headings-container {
+            position: relative;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        .headings-header {
+            margin: 0;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+        }
+
+        .headings-title {
+            font-weight: bold;
+            font-size: 0.9em;
+            color: var(--md-foreground);
+        }
+
+        .headings-list-dropdown {
             position: fixed;
-            top: 60px;
+            top: 45px;
             right: 16px;
             max-width: 250px;
-            max-height: calc(100vh - 80px);
+            max-height: calc(100vh - 60px);
             overflow-y: auto;
             background-color: var(--file-path-background);
             border: 1px solid var(--file-path-border);
@@ -923,28 +950,15 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             padding: 12px;
             z-index: 99;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: none;
         }
 
-        body.theme-dark .headings-container {
+        .headings-list-dropdown.show {
+            display: block;
+        }
+
+        body.theme-dark .headings-list-dropdown {
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .headings-header {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: 1px solid transparent;
-        }
-
-        .headings-container:hover .headings-header {
-            margin-bottom: 8px;
-            padding-bottom: 8px;
-            border-bottom-color: var(--file-path-border);
-        }
-
-        .headings-title {
-            font-weight: bold;
-            font-size: 0.9em;
-            color: var(--md-foreground);
         }
 
         .headings-list {
@@ -997,28 +1011,20 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             padding-left: 48px;
         }
 
-        .headings-list {
-            display: none;
-        }
-
-        .headings-container:hover .headings-list {
-            display: block;
-        }
-
-        .headings-container::-webkit-scrollbar {
+        .headings-list-dropdown::-webkit-scrollbar {
             width: 8px;
         }
 
-        .headings-container::-webkit-scrollbar-track {
+        .headings-list-dropdown::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        .headings-container::-webkit-scrollbar-thumb {
+        .headings-list-dropdown::-webkit-scrollbar-thumb {
             background: var(--md-quote-border);
             border-radius: 4px;
         }
 
-        .headings-container::-webkit-scrollbar-thumb:hover {
+        .headings-list-dropdown::-webkit-scrollbar-thumb:hover {
             background: var(--md-heading-border);
         }
     </style>
@@ -1043,15 +1049,17 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
         function initHeadings() {
             const headingsContainer = document.getElementById('headings-container');
+            const headingsListDropdown = document.getElementById('headings-list-dropdown');
             const headingsList = document.getElementById('headings-list');
 
-            if (!headingsContainer || !headingsList) {
+            if (!headingsContainer || !headingsListDropdown || !headingsList) {
                 return;
             }
 
             // Hide headings panel if no headings
             if (headings.length === 0) {
                 headingsContainer.style.display = 'none';
+                headingsListDropdown.style.display = 'none';
                 return;
             }
 
@@ -1075,6 +1083,31 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
                 li.appendChild(link);
                 headingsList.appendChild(li);
+            });
+
+            // Hover event handling with delay for smooth UX
+            let hideTimeout;
+
+            headingsContainer.addEventListener('mouseenter', () => {
+                clearTimeout(hideTimeout);
+                headingsListDropdown.classList.add('show');
+            });
+
+            headingsContainer.addEventListener('mouseleave', () => {
+                hideTimeout = setTimeout(() => {
+                    if (!headingsListDropdown.matches(':hover')) {
+                        headingsListDropdown.classList.remove('show');
+                    }
+                }, 700); // 700ms delay to allow slow mouse movement to dropdown
+            });
+
+            headingsListDropdown.addEventListener('mouseenter', () => {
+                clearTimeout(hideTimeout);
+                headingsListDropdown.classList.add('show');
+            });
+
+            headingsListDropdown.addEventListener('mouseleave', () => {
+                headingsListDropdown.classList.remove('show');
             });
         }
 
@@ -1113,13 +1146,17 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 </head>
 <body class="${themeClass}">
     <div class="file-path-header">
-        <span class="file-path-label">${fileIcon}</span>
-        <code class="file-path">${relativePath}</code>
-    </div>
-    <div id="headings-container" class="headings-container">
-        <div class="headings-header">
-            <span class="headings-title">Headings</span>
+        <div class="file-path-section">
+            <span class="file-path-label">${fileIcon}</span>
+            <code class="file-path">${relativePath}</code>
         </div>
+        <div id="headings-container" class="headings-container">
+            <div class="headings-header">
+                <span class="headings-title">Headings</span>
+            </div>
+        </div>
+    </div>
+    <div id="headings-list-dropdown" class="headings-list-dropdown">
         <ul id="headings-list" class="headings-list"></ul>
     </div>
     ${convertedHtml}
