@@ -914,7 +914,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             position: fixed;
             top: 60px;
             right: 16px;
-            max-width: 220px;
+            max-width: 250px;
             max-height: calc(100vh - 80px);
             overflow-y: auto;
             background-color: var(--file-path-background);

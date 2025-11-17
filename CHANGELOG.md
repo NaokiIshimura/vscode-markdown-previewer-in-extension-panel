@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Reduced Table of Contents width for better content area visibility
-  - Changed max-width from 300px to 220px (27% reduction)
+  - Changed max-width from 300px to 250px (17% reduction)
   - Provides more space for the main preview content
   - Creates a more compact and less intrusive navigation panel
+  - Maintains good readability for heading text
 
 ## [0.2.7] - 2025-11-17
 
