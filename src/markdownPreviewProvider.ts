@@ -910,7 +910,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             margin-right: 8px;
         }
 
-        .toc-container {
+        .headings-container {
             position: fixed;
             top: 60px;
             right: 16px;
@@ -925,39 +925,39 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        body.theme-dark .toc-container {
+        body.theme-dark .headings-container {
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
-        .toc-header {
+        .headings-header {
             margin-bottom: 0;
             padding-bottom: 0;
             border-bottom: 1px solid transparent;
         }
 
-        .toc-container:hover .toc-header {
+        .headings-container:hover .headings-header {
             margin-bottom: 8px;
             padding-bottom: 8px;
             border-bottom-color: var(--file-path-border);
         }
 
-        .toc-title {
+        .headings-title {
             font-weight: bold;
             font-size: 0.9em;
             color: var(--md-foreground);
         }
 
-        .toc-list {
+        .headings-list {
             list-style: none;
             padding: 0;
             margin: 0;
         }
 
-        .toc-item {
+        .headings-item {
             margin: 4px 0;
         }
 
-        .toc-link {
+        .headings-link {
             display: block;
             color: var(--md-link);
             text-decoration: none;
@@ -968,57 +968,57 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             cursor: pointer;
         }
 
-        .toc-link:hover {
+        .headings-link:hover {
             background-color: var(--md-code-background);
         }
 
-        .toc-item.level-1 .toc-link {
+        .headings-item.level-1 .headings-link {
             padding-left: 8px;
             font-weight: 600;
         }
 
-        .toc-item.level-2 .toc-link {
+        .headings-item.level-2 .headings-link {
             padding-left: 16px;
         }
 
-        .toc-item.level-3 .toc-link {
+        .headings-item.level-3 .headings-link {
             padding-left: 24px;
         }
 
-        .toc-item.level-4 .toc-link {
+        .headings-item.level-4 .headings-link {
             padding-left: 32px;
         }
 
-        .toc-item.level-5 .toc-link {
+        .headings-item.level-5 .headings-link {
             padding-left: 40px;
         }
 
-        .toc-item.level-6 .toc-link {
+        .headings-item.level-6 .headings-link {
             padding-left: 48px;
         }
 
-        .toc-list {
+        .headings-list {
             display: none;
         }
 
-        .toc-container:hover .toc-list {
+        .headings-container:hover .headings-list {
             display: block;
         }
 
-        .toc-container::-webkit-scrollbar {
+        .headings-container::-webkit-scrollbar {
             width: 8px;
         }
 
-        .toc-container::-webkit-scrollbar-track {
+        .headings-container::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        .toc-container::-webkit-scrollbar-thumb {
+        .headings-container::-webkit-scrollbar-thumb {
             background: var(--md-quote-border);
             border-radius: 4px;
         }
 
-        .toc-container::-webkit-scrollbar-thumb:hover {
+        .headings-container::-webkit-scrollbar-thumb:hover {
             background: var(--md-heading-border);
         }
     </style>
@@ -1038,30 +1038,30 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             }
         });
 
-        // Initialize table of contents
+        // Initialize headings
         const headings = ${headingsJson};
 
-        function initTableOfContents() {
-            const tocContainer = document.getElementById('toc-container');
-            const tocList = document.getElementById('toc-list');
+        function initHeadings() {
+            const headingsContainer = document.getElementById('headings-container');
+            const headingsList = document.getElementById('headings-list');
 
-            if (!tocContainer || !tocList) {
+            if (!headingsContainer || !headingsList) {
                 return;
             }
 
-            // Hide TOC if no headings
+            // Hide headings panel if no headings
             if (headings.length === 0) {
-                tocContainer.style.display = 'none';
+                headingsContainer.style.display = 'none';
                 return;
             }
 
-            // Generate TOC items
+            // Generate headings items
             headings.forEach(heading => {
                 const li = document.createElement('li');
-                li.className = 'toc-item level-' + heading.level;
+                li.className = 'headings-item level-' + heading.level;
 
                 const link = document.createElement('a');
-                link.className = 'toc-link';
+                link.className = 'headings-link';
                 link.textContent = heading.text;
                 link.href = '#' + heading.id;
                 link.addEventListener('click', (e) => {
@@ -1074,15 +1074,15 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 });
 
                 li.appendChild(link);
-                tocList.appendChild(li);
+                headingsList.appendChild(li);
             });
         }
 
-        // Initialize TOC when DOM is ready
+        // Initialize headings when DOM is ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initTableOfContents);
+            document.addEventListener('DOMContentLoaded', initHeadings);
         } else {
-            initTableOfContents();
+            initHeadings();
         }
 
         window.addEventListener('keydown', (event) => {
@@ -1116,11 +1116,11 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         <span class="file-path-label">${fileIcon}</span>
         <code class="file-path">${relativePath}</code>
     </div>
-    <div id="toc-container" class="toc-container">
-        <div class="toc-header">
-            <span class="toc-title">Table of Contents</span>
+    <div id="headings-container" class="headings-container">
+        <div class="headings-header">
+            <span class="headings-title">Headings</span>
         </div>
-        <ul id="toc-list" class="toc-list"></ul>
+        <ul id="headings-list" class="headings-list"></ul>
     </div>
     ${convertedHtml}
 </body>

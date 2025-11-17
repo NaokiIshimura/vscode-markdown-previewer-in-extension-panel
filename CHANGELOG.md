@@ -5,19 +5,28 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2025-11-17
+
+### Changed
+- Renamed "Table of Contents" feature to "Headings" for better clarity
+  - Updated all user-facing text from "Table of Contents" to "Headings"
+  - Updated CSS class names from `toc-*` to `headings-*`
+  - Updated function and variable names to reflect the new terminology
+  - Provides clearer understanding that this feature displays document headings
+
 ## [0.3.0] - 2025-11-17
 
 ### Changed
-- Table of Contents now expands on hover instead of manual toggle
+- Headings panel now expands on hover instead of manual toggle
   - Removed toggle button and keyboard shortcut (`t` key)
-  - ToC is now collapsed by default for cleaner interface
-  - Automatically expands when hovering over the ToC area
+  - Headings panel is now collapsed by default for cleaner interface
+  - Automatically expands when hovering over the Headings area
   - Provides a more intuitive and streamlined user experience
   - Reduces visual clutter while maintaining easy access to navigation
 
 ### Improved
-- Minimized Table of Contents area when collapsed
-  - Removed bottom margin and padding from ToC header in collapsed state
+- Minimized Headings panel area when collapsed
+  - Removed bottom margin and padding from Headings header in collapsed state
   - Border separator only appears when hovering (expanded state)
   - More compact and cleaner UI when not in use
   - Better utilization of preview screen space
@@ -25,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.8] - 2025-11-17
 
 ### Changed
-- Reduced Table of Contents width for better content area visibility
+- Reduced Headings panel width for better content area visibility
   - Changed max-width from 300px to 250px (17% reduction)
   - Provides more space for the main preview content
   - Creates a more compact and less intrusive navigation panel
@@ -34,15 +43,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.7] - 2025-11-17
 
 ### Improved
-- Table of Contents header now displays keyboard shortcut hint on hover
-  - Added tooltip to the entire ToC header area showing "Toggle Table of Contents [t]"
+- Headings panel header now displays keyboard shortcut hint on hover
+  - Added tooltip to the entire Headings header area showing "Toggle Headings [t]"
   - Provides better discoverability of the keyboard shortcut
   - Removed duplicate tooltip from toggle button to avoid redundancy
 
 ## [0.2.6] - 2025-11-17
 
 ### Added
-- Table of Contents navigation panel in the top-right corner of the preview
+- Headings navigation panel in the top-right corner of the preview
   - Automatically extracts h1-h3 headings from the Markdown document
   - Displays headings in a hierarchical list with proper indentation
   - Click on any heading to smoothly scroll to that section
