@@ -5,6 +5,23 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-11-17
+
+### Changed
+- Table of Contents now expands on hover instead of manual toggle
+  - Removed toggle button and keyboard shortcut (`t` key)
+  - ToC is now collapsed by default for cleaner interface
+  - Automatically expands when hovering over the ToC area
+  - Provides a more intuitive and streamlined user experience
+  - Reduces visual clutter while maintaining easy access to navigation
+
+### Improved
+- Minimized Table of Contents area when collapsed
+  - Removed bottom margin and padding from ToC header in collapsed state
+  - Border separator only appears when hovering (expanded state)
+  - More compact and cleaner UI when not in use
+  - Better utilization of preview screen space
+
 ## [0.2.8] - 2025-11-17
 
 ### Changed
