@@ -5,6 +5,20 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.9] - 2025-11-17
+
+### Changed
+- Repositioned Table of Contents from fixed right panel to sticky header below file path
+  - ToC now appears directly below the file path header at the top of the preview
+  - Default state is collapsed to maximize content visibility
+  - Hover over ToC to preview content (200ms delay for intentional interaction)
+  - Click ToC header or press `t` key to pin it open persistently
+  - Pinned state persists through mouse movements and scrolling
+  - Visual feedback with left border when pinned
+  - Smooth expand/collapse animations with cubic-bezier transitions
+  - Maintains accessibility with proper ARIA attributes
+  - Provides more intuitive and space-efficient navigation
+
 ## [0.2.8] - 2025-11-17
 
 ### Changed

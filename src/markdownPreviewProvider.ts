@@ -910,55 +910,80 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             margin-right: 8px;
         }
 
-        .toc-container {
-            position: fixed;
-            top: 60px;
-            right: 16px;
-            max-width: 250px;
-            max-height: calc(100vh - 80px);
-            overflow-y: auto;
+        .toc-section {
+            position: sticky;
+            top: 44px;
             background-color: var(--file-path-background);
-            border: 1px solid var(--file-path-border);
-            border-radius: 6px;
-            padding: 12px;
+            border-bottom: 1px solid var(--file-path-border);
+            margin: -16px -16px 0 -16px;
             z-index: 99;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        body.theme-dark .toc-container {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .toc-header {
+        .toc-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-            padding-bottom: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            background-color: var(--file-path-background);
             border-bottom: 1px solid var(--file-path-border);
-            cursor: pointer;
             user-select: none;
+            transition: background-color 0.2s ease;
         }
 
-        .toc-title {
-            font-weight: bold;
+        .toc-bar:hover {
+            background-color: var(--md-code-background);
+        }
+
+        .toc-section[data-pinned="true"] .toc-bar {
+            background-color: var(--md-code-background);
+            border-left: 3px solid var(--md-link);
+        }
+
+        .toc-bar-title {
             font-size: 0.9em;
+            font-weight: 600;
             color: var(--md-foreground);
         }
 
-        .toc-toggle {
-            cursor: pointer;
-            background: none;
-            border: none;
+        .toc-bar-icon {
+            font-size: 0.8em;
             color: var(--md-foreground);
-            font-size: 1em;
-            padding: 0;
-            line-height: 1;
-            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .toc-toggle:hover {
-            opacity: 0.7;
+        .toc-section.expanded .toc-bar-icon {
+            transform: rotate(180deg);
+        }
+
+        .toc-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: var(--file-path-background);
+        }
+
+        .toc-section.expanded .toc-content {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+
+        .toc-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .toc-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .toc-content::-webkit-scrollbar-thumb {
+            background: var(--md-quote-border);
+            border-radius: 4px;
+        }
+
+        .toc-content::-webkit-scrollbar-thumb:hover {
+            background: var(--md-heading-border);
         }
 
         .toc-list {
@@ -1010,27 +1035,6 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         .toc-item.level-6 .toc-link {
             padding-left: 48px;
         }
-
-        .toc-container.collapsed .toc-list {
-            display: none;
-        }
-
-        .toc-container::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .toc-container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .toc-container::-webkit-scrollbar-thumb {
-            background: var(--md-quote-border);
-            border-radius: 4px;
-        }
-
-        .toc-container::-webkit-scrollbar-thumb:hover {
-            background: var(--md-heading-border);
-        }
     </style>
     <script>
         const vscode = acquireVsCodeApi();
@@ -1052,26 +1056,24 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const headings = ${headingsJson};
 
         function initTableOfContents() {
-            const tocContainer = document.getElementById('toc-container');
+            const tocSection = document.getElementById('toc-section');
+            const tocBar = document.querySelector('.toc-bar');
+            const tocContent = document.getElementById('toc-content');
             const tocList = document.getElementById('toc-list');
-            const tocToggle = document.getElementById('toc-toggle');
-            const tocHeader = document.querySelector('.toc-header');
+            const tocBarIcon = document.getElementById('toc-bar-icon');
 
-            if (!tocContainer || !tocList || !tocToggle || !tocHeader) {
+            if (!tocSection || !tocBar || !tocContent || !tocList || !tocBarIcon) {
                 return;
             }
 
-            // Hide TOC if no headings
             if (headings.length === 0) {
-                tocContainer.style.display = 'none';
+                tocSection.style.display = 'none';
                 return;
             }
 
-            // Generate TOC items
             headings.forEach(heading => {
                 const li = document.createElement('li');
                 li.className = 'toc-item level-' + heading.level;
-
                 const link = document.createElement('a');
                 link.className = 'toc-link';
                 link.textContent = heading.text;
@@ -1080,19 +1082,59 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                     e.preventDefault();
                     const target = document.getElementById(heading.id);
                     if (target) {
-                        // CSS scroll-margin-top will automatically handle the offset
                         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 });
-
                 li.appendChild(link);
                 tocList.appendChild(li);
             });
 
-            // Toggle TOC collapse/expand on header click
-            tocHeader.addEventListener('click', () => {
-                tocContainer.classList.toggle('collapsed');
-                tocToggle.textContent = tocContainer.classList.contains('collapsed') ? '▶' : '▼';
+            let hoverTimeout = null;
+
+            function expand() {
+                tocSection.classList.add('expanded');
+                tocBar.setAttribute('aria-expanded', 'true');
+            }
+
+            function collapse() {
+                tocSection.classList.remove('expanded');
+                tocBar.setAttribute('aria-expanded', 'false');
+            }
+
+            function isPinned() {
+                return tocSection.dataset.pinned === 'true';
+            }
+
+            tocSection.addEventListener('mouseenter', () => {
+                hoverTimeout = setTimeout(() => {
+                    expand();
+                }, 200);
+            });
+
+            tocSection.addEventListener('mouseleave', () => {
+                clearTimeout(hoverTimeout);
+                if (!isPinned()) {
+                    collapse();
+                }
+            });
+
+            tocBar.addEventListener('click', (e) => {
+                clearTimeout(hoverTimeout);
+                if (isPinned()) {
+                    tocSection.dataset.pinned = 'false';
+                    collapse();
+                } else {
+                    tocSection.dataset.pinned = 'true';
+                    expand();
+                }
+                e.stopPropagation();
+            });
+
+            tocBar.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    tocBar.click();
+                }
             });
         }
 
@@ -1127,11 +1169,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 vscode.postMessage({ command: 'refresh' });
             } else if (event.key === 't') {
                 event.preventDefault();
-                const tocContainer = document.getElementById('toc-container');
-                const tocToggle = document.getElementById('toc-toggle');
-                if (tocContainer && tocToggle) {
-                    tocContainer.classList.toggle('collapsed');
-                    tocToggle.textContent = tocContainer.classList.contains('collapsed') ? '▶' : '▼';
+                const tocBar = document.querySelector('.toc-bar');
+                if (tocBar) {
+                    tocBar.click();
                 }
             }
         });
@@ -1142,12 +1182,14 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         <span class="file-path-label">${fileIcon}</span>
         <code class="file-path">${relativePath}</code>
     </div>
-    <div id="toc-container" class="toc-container">
-        <div class="toc-header" title="Toggle Table of Contents [t]">
-            <span class="toc-title">Table of Contents</span>
-            <button id="toc-toggle" class="toc-toggle">▼</button>
+    <div id="toc-section" class="toc-section" data-pinned="false">
+        <div class="toc-bar" role="button" aria-expanded="false" aria-controls="toc-content" tabindex="0" title="Hover to preview, click to pin [t]">
+            <span class="toc-bar-title">Table of Contents</span>
+            <span id="toc-bar-icon" class="toc-bar-icon">▼</span>
         </div>
-        <ul id="toc-list" class="toc-list"></ul>
+        <div id="toc-content" class="toc-content">
+            <ul id="toc-list" class="toc-list"></ul>
+        </div>
     </div>
     ${convertedHtml}
 </body>

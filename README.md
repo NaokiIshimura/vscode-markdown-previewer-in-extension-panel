@@ -44,7 +44,8 @@ Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window
 
 ## Tips & Known Limitations
 - The Table of Contents automatically extracts h1-h3 headings from your Markdown document and provides clickable navigation.
-- Click the header area or press `t` to collapse or expand the Table of Contents panel. Hover over the header to see the keyboard shortcut hint.
+- The ToC appears below the file path header and is collapsed by default. Hover over it to preview, click to pin it open, or press `t` to toggle.
+- When pinned, the ToC stays open even when you move your mouse away. Click again or press `t` to close it.
 - Clicking on a heading in the Table of Contents smoothly scrolls to that section in the preview.
 - Mermaid diagrams load from the jsDelivr CDN; an offline environment will skip diagram rendering.
 - Images and links resolve using VS Code's workspace paths—ensure referenced files exist in reachable locations.
