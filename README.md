@@ -10,7 +10,7 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 
 | Feature | Shortcut | Description |
 | --- | --- | --- |
-| Table of Contents | Always visible | Displays a collapsible navigation panel with h1-h3 headings in the document (right side of preview) |
+| Table of Contents | `t` | Displays a collapsible navigation panel with h1-h3 headings in the document (right side of preview) |
 | Light Theme<br>Dark Theme | Toolbar only | Switch between light and dark theme for the preview |
 | Zoom In<br>Zoom Out | `+`<br>`-` | Zoom in/out the preview (displays current zoom level) |
 | Reset Zoom | Toolbar only | Reset zoom level to default |
@@ -44,7 +44,7 @@ Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window
 
 ## Tips & Known Limitations
 - The Table of Contents automatically extracts h1-h3 headings from your Markdown document and provides clickable navigation.
-- Click the toggle button (▼/▶) to collapse or expand the Table of Contents panel.
+- Click the header area or press `t` to collapse or expand the Table of Contents panel. Hover over the header to see the keyboard shortcut hint.
 - Clicking on a heading in the Table of Contents smoothly scrolls to that section in the preview.
 - Mermaid diagrams load from the jsDelivr CDN; an offline environment will skip diagram rendering.
 - Images and links resolve using VS Code's workspace paths—ensure referenced files exist in reachable locations.
