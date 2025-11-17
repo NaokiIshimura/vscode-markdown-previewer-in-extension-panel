@@ -5,6 +5,14 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.8] - 2025-11-17
+
+### Changed
+- Reduced Table of Contents width for better content area visibility
+  - Changed max-width from 300px to 220px (27% reduction)
+  - Provides more space for the main preview content
+  - Creates a more compact and less intrusive navigation panel
+
 ## [0.2.7] - 2025-11-17
 
 ### Improved
