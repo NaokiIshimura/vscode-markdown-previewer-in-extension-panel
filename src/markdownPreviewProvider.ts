@@ -930,35 +930,21 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         .toc-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: 1px solid transparent;
+        }
+
+        .toc-container:hover .toc-header {
             margin-bottom: 8px;
             padding-bottom: 8px;
-            border-bottom: 1px solid var(--file-path-border);
-            cursor: pointer;
-            user-select: none;
+            border-bottom-color: var(--file-path-border);
         }
 
         .toc-title {
             font-weight: bold;
             font-size: 0.9em;
             color: var(--md-foreground);
-        }
-
-        .toc-toggle {
-            cursor: pointer;
-            background: none;
-            border: none;
-            color: var(--md-foreground);
-            font-size: 1em;
-            padding: 0;
-            line-height: 1;
-            pointer-events: none;
-        }
-
-        .toc-toggle:hover {
-            opacity: 0.7;
         }
 
         .toc-list {
@@ -1011,8 +997,12 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             padding-left: 48px;
         }
 
-        .toc-container.collapsed .toc-list {
+        .toc-list {
             display: none;
+        }
+
+        .toc-container:hover .toc-list {
+            display: block;
         }
 
         .toc-container::-webkit-scrollbar {
@@ -1054,10 +1044,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         function initTableOfContents() {
             const tocContainer = document.getElementById('toc-container');
             const tocList = document.getElementById('toc-list');
-            const tocToggle = document.getElementById('toc-toggle');
-            const tocHeader = document.querySelector('.toc-header');
 
-            if (!tocContainer || !tocList || !tocToggle || !tocHeader) {
+            if (!tocContainer || !tocList) {
                 return;
             }
 
@@ -1087,12 +1075,6 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
                 li.appendChild(link);
                 tocList.appendChild(li);
-            });
-
-            // Toggle TOC collapse/expand on header click
-            tocHeader.addEventListener('click', () => {
-                tocContainer.classList.toggle('collapsed');
-                tocToggle.textContent = tocContainer.classList.contains('collapsed') ? '▶' : '▼';
             });
         }
 
@@ -1125,14 +1107,6 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === 'r') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'refresh' });
-            } else if (event.key === 't') {
-                event.preventDefault();
-                const tocContainer = document.getElementById('toc-container');
-                const tocToggle = document.getElementById('toc-toggle');
-                if (tocContainer && tocToggle) {
-                    tocContainer.classList.toggle('collapsed');
-                    tocToggle.textContent = tocContainer.classList.contains('collapsed') ? '▶' : '▼';
-                }
             }
         });
     </script>
@@ -1143,9 +1117,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         <code class="file-path">${relativePath}</code>
     </div>
     <div id="toc-container" class="toc-container">
-        <div class="toc-header" title="Toggle Table of Contents [t]">
+        <div class="toc-header">
             <span class="toc-title">Table of Contents</span>
-            <button id="toc-toggle" class="toc-toggle">▼</button>
         </div>
         <ul id="toc-list" class="toc-list"></ul>
     </div>
