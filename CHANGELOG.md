@@ -5,6 +5,14 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2025-11-20
+
+### Added
+- Syntax highlighting for fenced code blocks that specify a language
+  - Uses `highlight.js` so code fences such as <code>```javascript</code> gain readable colors
+  - Automatically matches the preview's light/dark theme colors
+  - Applies to both pinned and live-follow previews without extra actions
+
 ## [0.3.2] - 2025-11-18
 
 ### Changed

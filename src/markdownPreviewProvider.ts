@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import * as MarkdownIt from 'markdown-it';
+import MarkdownIt from 'markdown-it';
+import hljs from 'highlight.js';
 import * as path from 'path';
 import anchor from 'markdown-it-anchor';
 import { ThemeManager, EffectiveTheme } from './themeManager';
@@ -43,8 +44,18 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             html: true,
             linkify: true,
             typographer: true,
-            breaks: true
+            breaks: true,
+            highlight: (code: string, lang: string) => this.highlightCodeBlock(code, lang)
         });
+
+        const defaultFenceRenderer = this._md.renderer.rules.fence ?? ((tokens, idx, options, env, self) => {
+            return self.renderToken(tokens, idx, options);
+        });
+
+        this._md.renderer.rules.fence = (tokens, idx, options, env, self) => {
+            tokens[idx].attrJoin('class', 'hljs');
+            return defaultFenceRenderer(tokens, idx, options, env, self);
+        };
 
         // Add anchor plugin for heading IDs
         this._md.use(anchor, {
@@ -594,6 +605,25 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         );
     }
 
+    private highlightCodeBlock(code: string, lang: string): string {
+        const normalizedLang = (lang ?? '').trim().split(/\s+/)[0].toLowerCase();
+
+        if (normalizedLang && hljs.getLanguage(normalizedLang)) {
+            try {
+                const result = hljs.highlight(code, {
+                    language: normalizedLang,
+                    ignoreIllegals: true
+                });
+                return result.value;
+            } catch {
+                // Fallback to escaped HTML when highlighting fails
+                return this._md.utils.escapeHtml(code);
+            }
+        }
+
+        return this._md.utils.escapeHtml(code);
+    }
+
     private getDefaultZoomLevel(): number {
         const config = vscode.workspace.getConfiguration('markdownPreview');
         const defaultZoom = config.get<number>('defaultZoomLevel', 100);
@@ -755,6 +785,12 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             --file-path-background: #f5f7fa;
             --file-path-foreground: #1e1e1e;
             --file-path-border: #d0d4d9;
+            --hljs-comment: #6a737d;
+            --hljs-keyword: #d73a49;
+            --hljs-number: #005cc5;
+            --hljs-string: #22863a;
+            --hljs-title: #6f42c1;
+            --hljs-meta: #b08800;
         }
 
         body.theme-dark {
@@ -771,6 +807,12 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             --file-path-background: #252526;
             --file-path-foreground: #d4d4d4;
             --file-path-border: #3f3f46;
+            --hljs-comment: #8b949e;
+            --hljs-keyword: #ff7b72;
+            --hljs-number: #a5d6ff;
+            --hljs-string: #7ee787;
+            --hljs-title: #d2a8ff;
+            --hljs-meta: #e3b341;
         }
 
         body {
@@ -841,6 +883,69 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             padding: 0;
             border-radius: 0;
             white-space: pre;
+        }
+
+        pre code.hljs {
+            display: block;
+            overflow-x: auto;
+        }
+
+        .hljs {
+            background-color: var(--md-code-background);
+            color: var(--md-code-foreground);
+        }
+
+        .hljs-comment,
+        .hljs-quote {
+            color: var(--hljs-comment);
+            font-style: italic;
+        }
+
+        .hljs-keyword,
+        .hljs-selector-tag,
+        .hljs-literal,
+        .hljs-section,
+        .hljs-link,
+        .hljs-deletion {
+            color: var(--hljs-keyword);
+        }
+
+        .hljs-title,
+        .hljs-title.class_,
+        .hljs-class .hljs-title,
+        .hljs-function .hljs-title {
+            color: var(--hljs-title);
+        }
+
+        .hljs-string,
+        .hljs-subst,
+        .hljs-symbol,
+        .hljs-addition,
+        .hljs-doctag {
+            color: var(--hljs-string);
+        }
+
+        .hljs-number,
+        .hljs-attr,
+        .hljs-attribute,
+        .hljs-variable,
+        .hljs-template-variable,
+        .hljs-bullet {
+            color: var(--hljs-number);
+        }
+
+        .hljs-meta,
+        .hljs-meta .hljs-keyword,
+        .hljs-meta .hljs-string {
+            color: var(--hljs-meta);
+        }
+
+        .hljs-emphasis {
+            font-style: italic;
+        }
+
+        .hljs-strong {
+            font-weight: 600;
         }
 
         blockquote {
