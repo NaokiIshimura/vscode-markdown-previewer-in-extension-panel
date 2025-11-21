@@ -791,6 +791,14 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             --hljs-string: #22863a;
             --hljs-title: #6f42c1;
             --hljs-meta: #b08800;
+            --scrollbar-track: #eff2f6;
+            --scrollbar-thumb: #c5c9cf;
+            --scrollbar-thumb-hover: #aeb3bb;
+            --copy-button-background: rgba(255, 255, 255, 0.9);
+            --copy-button-foreground: #1e1e1e;
+            --copy-button-border: #cbd0d8;
+            --copy-button-background-hover: #e7eaee;
+            --copy-button-shadow: rgba(15, 23, 42, 0.1);
         }
 
         body.theme-dark {
@@ -813,6 +821,14 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             --hljs-string: #7ee787;
             --hljs-title: #d2a8ff;
             --hljs-meta: #e3b341;
+            --scrollbar-track: #1c1c1c;
+            --scrollbar-thumb: #3f3f46;
+            --scrollbar-thumb-hover: #5f6570;
+            --copy-button-background: rgba(37, 37, 38, 0.9);
+            --copy-button-foreground: #d4d4d4;
+            --copy-button-border: #3f3f46;
+            --copy-button-background-hover: #2f2f31;
+            --copy-button-shadow: rgba(0, 0, 0, 0.3);
         }
 
         body {
@@ -823,6 +839,30 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             padding: 16px;
             margin: 0;
             font-size: ${fontSize}em;
+        }
+
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--scrollbar-thumb);
+            border-radius: 8px;
+            border: 2px solid var(--scrollbar-track);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--scrollbar-thumb-hover);
         }
         
         h1, h2, h3, h4, h5, h6 {
@@ -876,6 +916,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             overflow-x: auto;
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             white-space: pre;
+            font-size: 1em;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        pre.has-copy-button {
+            padding-top: 40px;
         }
 
         pre code {
@@ -946,6 +993,30 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
         .hljs-strong {
             font-weight: 600;
+        }
+
+        .code-copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            border: 1px solid var(--copy-button-border);
+            border-radius: 4px;
+            background-color: var(--copy-button-background);
+            color: var(--copy-button-foreground);
+            font-size: 0.75em;
+            padding: 4px 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px var(--copy-button-shadow);
+            transition: background-color 0.2s ease, opacity 0.2s ease;
+        }
+
+        .code-copy-button:hover:not(:disabled) {
+            background-color: var(--copy-button-background-hover);
+        }
+
+        .code-copy-button:disabled {
+            opacity: 0.7;
+            cursor: default;
         }
 
         blockquote {
@@ -1216,11 +1287,89 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             });
         }
 
-        // Initialize headings when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initHeadings);
-        } else {
+        function attachCodeBlockCopyButtons() {
+            const codeBlocks = document.querySelectorAll('pre code');
+            codeBlocks.forEach((codeBlock) => {
+                const pre = codeBlock.parentElement;
+                if (!pre || pre.classList.contains('has-copy-button')) {
+                    return;
+                }
+
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'code-copy-button';
+                button.textContent = 'Copy';
+                button.setAttribute('aria-label', 'Copy code to clipboard');
+                button.setAttribute('data-label-default', 'Copy');
+
+                button.addEventListener('click', () => {
+                    void copyCodeContent(codeBlock as HTMLElement, button);
+                });
+
+                pre.classList.add('has-copy-button');
+                pre.appendChild(button);
+            });
+        }
+
+        async function copyCodeContent(codeElement, button) {
+            const text = codeElement?.innerText ?? '';
+            if (!text) {
+                setCopyButtonState(button, 'Failed');
+                return;
+            }
+
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    setCopyButtonState(button, 'Copied!');
+                    return;
+                }
+                const fallbackSuccess = fallbackCopy(text);
+                setCopyButtonState(button, fallbackSuccess ? 'Copied!' : 'Failed');
+            } catch {
+                const fallbackSuccess = fallbackCopy(text);
+                setCopyButtonState(button, fallbackSuccess ? 'Copied!' : 'Failed');
+            }
+        }
+
+        function fallbackCopy(text) {
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                textarea.style.pointerEvents = 'none';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                const success = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                return success;
+            } catch {
+                return false;
+            }
+        }
+
+        function setCopyButtonState(button, label) {
+            const defaultLabel = button.getAttribute('data-label-default') ?? 'Copy';
+            button.textContent = label;
+            button.disabled = true;
+            setTimeout(() => {
+                button.textContent = defaultLabel;
+                button.disabled = false;
+            }, 1500);
+        }
+
+        function initPreviewEnhancements() {
             initHeadings();
+            attachCodeBlockCopyButtons();
+        }
+
+        // Initialize enhancements when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPreviewEnhancements);
+        } else {
+            initPreviewEnhancements();
         }
 
         window.addEventListener('keydown', (event) => {

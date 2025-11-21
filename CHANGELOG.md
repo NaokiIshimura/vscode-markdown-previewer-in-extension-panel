@@ -5,6 +5,16 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] - 2025-11-21
+
+### Added
+- Copy button inside each fenced code block to quickly copy its contents
+
+### Changed
+- Scrollbars now inherit the active preview theme in both light and dark modes
+- Reduced code block font size for improved readability
+- Documentation updated to describe the new copy button and themed scrollbars
+
 ## [0.3.3] - 2025-11-20
 
 ### Added
