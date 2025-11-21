@@ -921,10 +921,6 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             position: relative;
         }
 
-        pre.has-copy-button {
-            padding-top: 40px;
-        }
-
         pre code {
             background-color: transparent;
             padding: 0;
@@ -995,28 +991,41 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             font-weight: 600;
         }
 
-        .code-copy-button {
+        .code-block-wrapper {
+            position: relative;
+            margin: 16px 0;
+        }
+
+        .code-block-wrapper pre {
+            margin: 0;
+        }
+
+        .copy-code-button {
             position: absolute;
             top: 8px;
             right: 8px;
-            border: 1px solid var(--copy-button-border);
-            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
             background-color: var(--copy-button-background);
             color: var(--copy-button-foreground);
-            font-size: 0.75em;
-            padding: 4px 8px;
+            border: 1px solid var(--copy-button-border);
+            border-radius: 4px;
             cursor: pointer;
-            box-shadow: 0 2px 6px var(--copy-button-shadow);
-            transition: background-color 0.2s ease, opacity 0.2s ease;
+            opacity: 0;
+            transition: opacity 0.2s ease, background-color 0.2s ease;
+            box-shadow: 0 2px 4px var(--copy-button-shadow);
         }
 
-        .code-copy-button:hover:not(:disabled) {
+        .code-block-wrapper:hover .copy-code-button {
+            opacity: 1;
+        }
+
+        .copy-code-button:hover {
             background-color: var(--copy-button-background-hover);
         }
 
-        .code-copy-button:disabled {
-            opacity: 0.7;
-            cursor: default;
+        .copy-code-button:active {
+            transform: scale(0.95);
         }
 
         blockquote {
@@ -1287,82 +1296,57 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             });
         }
 
-        function attachCodeBlockCopyButtons() {
-            const codeBlocks = document.querySelectorAll('pre code');
-            codeBlocks.forEach((codeBlock) => {
-                const pre = codeBlock.parentElement;
-                if (!pre || pre.classList.contains('has-copy-button')) {
+        function wrapCodeBlocks() {
+            const preElements = document.querySelectorAll('pre');
+            preElements.forEach(pre => {
+                // Skip if already wrapped
+                if (pre.parentElement && pre.parentElement.classList.contains('code-block-wrapper')) {
                     return;
                 }
 
+                // Create wrapper
+                const wrapper = document.createElement('div');
+                wrapper.className = 'code-block-wrapper';
+                
+                // Create copy button
                 const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'code-copy-button';
+                button.className = 'copy-code-button';
                 button.textContent = 'Copy';
                 button.setAttribute('aria-label', 'Copy code to clipboard');
-                button.setAttribute('data-label-default', 'Copy');
+                
+                // Add click handler
+                button.addEventListener('click', async () => {
+                    const code = pre.querySelector('code');
+                    const text = code ? code.textContent : pre.textContent;
+                    
+                    if (!text) {
+                        return;
+                    }
 
-                button.addEventListener('click', () => {
-                    void copyCodeContent(codeBlock as HTMLElement, button);
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        button.textContent = 'Copied!';
+                        setTimeout(() => {
+                            button.textContent = 'Copy';
+                        }, 2000);
+                    } catch (err) {
+                        button.textContent = 'Failed';
+                        setTimeout(() => {
+                            button.textContent = 'Copy';
+                        }, 2000);
+                    }
                 });
 
-                pre.classList.add('has-copy-button');
-                pre.appendChild(button);
+                // Wrap the pre element
+                pre.parentNode.insertBefore(wrapper, pre);
+                wrapper.appendChild(pre);
+                wrapper.appendChild(button);
             });
-        }
-
-        async function copyCodeContent(codeElement, button) {
-            const text = codeElement?.innerText ?? '';
-            if (!text) {
-                setCopyButtonState(button, 'Failed');
-                return;
-            }
-
-            try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    await navigator.clipboard.writeText(text);
-                    setCopyButtonState(button, 'Copied!');
-                    return;
-                }
-                const fallbackSuccess = fallbackCopy(text);
-                setCopyButtonState(button, fallbackSuccess ? 'Copied!' : 'Failed');
-            } catch {
-                const fallbackSuccess = fallbackCopy(text);
-                setCopyButtonState(button, fallbackSuccess ? 'Copied!' : 'Failed');
-            }
-        }
-
-        function fallbackCopy(text) {
-            try {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                textarea.style.position = 'fixed';
-                textarea.style.opacity = '0';
-                textarea.style.pointerEvents = 'none';
-                document.body.appendChild(textarea);
-                textarea.focus();
-                textarea.select();
-                const success = document.execCommand('copy');
-                document.body.removeChild(textarea);
-                return success;
-            } catch {
-                return false;
-            }
-        }
-
-        function setCopyButtonState(button, label) {
-            const defaultLabel = button.getAttribute('data-label-default') ?? 'Copy';
-            button.textContent = label;
-            button.disabled = true;
-            setTimeout(() => {
-                button.textContent = defaultLabel;
-                button.disabled = false;
-            }, 1500);
         }
 
         function initPreviewEnhancements() {
             initHeadings();
-            attachCodeBlockCopyButtons();
+            wrapCodeBlocks();
         }
 
         // Initialize enhancements when DOM is ready
