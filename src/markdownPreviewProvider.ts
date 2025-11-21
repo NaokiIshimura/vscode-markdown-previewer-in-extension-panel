@@ -916,7 +916,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             overflow-x: auto;
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             white-space: pre;
-            font-size: 0.95em;
+            font-size: 1em;
             line-height: 1.5;
             position: relative;
         }
