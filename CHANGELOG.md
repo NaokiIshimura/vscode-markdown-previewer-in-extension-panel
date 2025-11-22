@@ -5,6 +5,31 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.8] - 2025-11-23
+
+### Added
+- Keyboard shortcut `h` to toggle headings panel visibility
+  - Press `h` key to show/hide headings navigation panel
+  - Works alongside existing hover functionality
+  - Manual toggle state is preserved until explicitly changed
+  - Hover behavior continues to work when panel is not manually toggled
+- File path copy functionality with multiple methods
+  - Press `c` key to copy file path to clipboard
+  - Click file path text to copy to clipboard
+  - Shows VS Code notification message on successful copy
+  - Visual feedback with checkmark (✓) in webview
+  - Error notification if copy fails
+  - Feedback automatically resets after 1.5 seconds
+  - Copy icon (📋) appears on hover for visual hint
+
+### Changed
+- Headings panel can now be controlled with both `h` key and hover
+- File path section updated with clickable design
+- File path now visually indicates it's clickable with hover effects
+
+### Removed
+- Separate copy button (📋 icon button) next to file path
+
 ## [0.3.7] - 2025-11-22
 
 ### Added
