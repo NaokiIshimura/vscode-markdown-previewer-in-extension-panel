@@ -155,7 +155,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     }
 
     public toggleTheme(): void {
-        this.setTheme(this._theme === 'light' ? 'dark' : 'light');
+        const newTheme = this._theme === 'light' ? 'dark' : 'light';
+        this.setTheme(newTheme);
+        void vscode.window.showInformationMessage(`Theme: ${newTheme === 'light' ? 'Light' : 'Dark'}`);
     }
 
     public zoomIn(): void {
@@ -186,6 +188,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
     public resetZoom(): void {
         this.applyZoomChange(100);
+        void vscode.window.showInformationMessage('Zoom: 100%');
     }
 
     public onConfigurationChanged(): void {
