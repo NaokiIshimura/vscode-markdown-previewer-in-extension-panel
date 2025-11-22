@@ -124,6 +124,12 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 case 'zoomOut':
                     this.zoomOut();
                     break;
+                case 'resetZoom':
+                    this.resetZoom();
+                    break;
+                case 'toggleTheme':
+                    this.toggleTheme();
+                    break;
                 case 'refresh':
                     this.refresh();
                     break;
@@ -146,6 +152,10 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
     public useDarkTheme(): void {
         this.setTheme('dark');
+    }
+
+    public toggleTheme(): void {
+        this.setTheme(this._theme === 'light' ? 'dark' : 'light');
     }
 
     public zoomIn(): void {
@@ -1377,7 +1387,10 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 vscode.postMessage({ command: 'zoomOut' });
             } else if (event.key === 'r') {
                 event.preventDefault();
-                vscode.postMessage({ command: 'refresh' });
+                vscode.postMessage({ command: 'resetZoom' });
+            } else if (event.key === 't') {
+                event.preventDefault();
+                vscode.postMessage({ command: 'toggleTheme' });
             }
         });
     </script>

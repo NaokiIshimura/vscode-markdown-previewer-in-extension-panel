@@ -3,7 +3,7 @@
   "publisher": "nacn",
   "displayName": "Markdown Preview in Extension Area",
   "description": "Display markdown preview in sidebar or panel",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "icon": "assets/icon-128.png",
   "engines": {
     "vscode": "^1.74.0"
@@ -92,12 +92,12 @@
       },
       {
         "command": "markdownPreview.useLightTheme",
-        "title": "Use Light Theme",
+        "title": "Use Light Theme [t]",
         "icon": "$(color-mode)"
       },
       {
         "command": "markdownPreview.useDarkTheme",
-        "title": "Use Dark Theme",
+        "title": "Use Dark Theme [t]",
         "icon": "$(color-mode)"
       },
       {
@@ -112,7 +112,7 @@
       },
       {
         "command": "markdownPreview.resetZoom",
-        "title": "Reset Zoom",
+        "title": "Reset Zoom [r]",
         "icon": "$(search-stop)"
       },
       {
