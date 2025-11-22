@@ -5,6 +5,23 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.7] - 2025-11-22
+
+### Added
+- Search functionality with integrated search bar in file path header
+  - Press `f` key to show search bar with auto-focus to search input
+  - Search bar positioned after Pin/Unpin button in the toolbar
+  - Case-sensitive search option via checkbox
+  - Navigate matches with Enter (next) / Shift+Enter (previous)
+  - Close search bar with Esc key
+  - Real-time match highlighting with current match indicator
+  - Match counter displays "X/Y" format
+  - Search input focus control prevents keyboard shortcuts from firing during typing
+
+### Changed
+- Toolbar button order updated: Search button now appears immediately after Pin/Unpin
+- All keyboard shortcuts (r, t, p, e, +, -, ←, →) are disabled when typing in search input
+
 ## [0.3.6] - 2025-11-22
 
 ### Added

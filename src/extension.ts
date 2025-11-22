@@ -92,6 +92,12 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
+    context.subscriptions.push(
+        vscode.commands.registerCommand('markdownPreview.search', () => {
+            provider.showSearch();
+        })
+    );
+
     // Listen for active editor changes with debounce
     context.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor(() => {

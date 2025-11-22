@@ -3,7 +3,7 @@
   "publisher": "nacn",
   "displayName": "Markdown Preview in Extension Area",
   "description": "Display markdown preview in sidebar or panel",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "icon": "assets/icon-128.png",
   "engines": {
     "vscode": "^1.74.0"
@@ -119,6 +119,11 @@
         "command": "markdownPreview.openSettings",
         "title": "Open Settings",
         "icon": "$(settings-gear)"
+      },
+      {
+        "command": "markdownPreview.search",
+        "title": "Search [f]",
+        "icon": "$(search)"
       }
     ],
     "menus": {
@@ -134,44 +139,49 @@
           "group": "navigation@0"
         },
         {
+          "command": "markdownPreview.search",
+          "when": "view == markdownPreview",
+          "group": "navigation@1"
+        },
+        {
           "command": "markdownPreview.useDarkTheme",
           "when": "view == markdownPreview && !markdownPreview:isDarkTheme",
-          "group": "navigation@1"
+          "group": "navigation@2"
         },
         {
           "command": "markdownPreview.useLightTheme",
           "when": "view == markdownPreview && markdownPreview:isDarkTheme",
-          "group": "navigation@1"
+          "group": "navigation@2"
         },
         {
           "command": "markdownPreview.zoomIn",
           "when": "view == markdownPreview",
-          "group": "navigation@2"
+          "group": "navigation@3"
         },
         {
           "command": "markdownPreview.zoomOut",
           "when": "view == markdownPreview",
-          "group": "navigation@3"
+          "group": "navigation@4"
         },
         {
           "command": "markdownPreview.resetZoom",
           "when": "view == markdownPreview",
-          "group": "navigation@4"
+          "group": "navigation@5"
         },
         {
           "command": "markdownPreview.edit",
           "when": "view == markdownPreview && markdownPreview:canEdit",
-          "group": "navigation@5"
+          "group": "navigation@6"
         },
         {
           "command": "markdownPreview.refresh",
           "when": "view == markdownPreview",
-          "group": "navigation@6"
+          "group": "navigation@7"
         },
         {
           "command": "markdownPreview.openSettings",
           "when": "view == markdownPreview",
-          "group": "navigation@7"
+          "group": "navigation@8"
         }
       ]
     },

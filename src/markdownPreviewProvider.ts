@@ -133,6 +133,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 case 'refresh':
                     this.refresh();
                     break;
+                case 'showSearch':
+                    // Search is handled in webview
+                    break;
             }
         });
 
@@ -144,6 +147,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
     public refresh() {
         void this.updatePreview();
+    }
+
+    public showSearch(): void {
+        if (!this._view) {
+            return;
+        }
+        this._view.webview.postMessage({ command: 'showSearch' });
     }
 
     public useLightTheme(): void {
@@ -1225,6 +1235,113 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         .headings-list-dropdown::-webkit-scrollbar-thumb:hover {
             background: var(--md-heading-border);
         }
+
+        .file-path-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-section {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 0 1 auto;
+            min-width: 300px;
+            max-width: 500px;
+        }
+
+        .search-section.hidden {
+            display: none;
+        }
+
+        .search-input {
+            width: 160px;
+            padding: 3px 6px;
+            border: 1px solid var(--file-path-border);
+            border-radius: 3px;
+            background-color: var(--md-background);
+            color: var(--md-foreground);
+            font-size: 0.85em;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--md-link);
+        }
+
+        .search-input::placeholder {
+            color: var(--hljs-comment);
+        }
+
+        .search-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .search-results {
+            font-size: 0.8em;
+            color: var(--md-foreground);
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .search-button {
+            padding: 2px 6px;
+            background-color: var(--copy-button-background);
+            color: var(--copy-button-foreground);
+            border: 1px solid var(--copy-button-border);
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.85em;
+            line-height: 1;
+        }
+
+        .search-button:hover {
+            background-color: var(--copy-button-background-hover);
+        }
+
+        .search-button:active {
+            transform: scale(0.95);
+        }
+
+        .search-option {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            padding: 2px 4px;
+            font-size: 0.8em;
+        }
+
+        .search-option input[type="checkbox"] {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        mark.search-highlight {
+            background-color: rgba(255, 255, 0, 0.3);
+            color: inherit;
+            padding: 1px 2px;
+            border-radius: 2px;
+        }
+
+        body.theme-dark mark.search-highlight {
+            background-color: rgba(255, 255, 0, 0.2);
+        }
+
+        mark.search-highlight-current {
+            background-color: rgba(255, 165, 0, 0.5);
+            font-weight: 600;
+        }
+
+        body.theme-dark mark.search-highlight-current {
+            background-color: rgba(255, 165, 0, 0.4);
+        }
     </style>
     <script>
         const vscode = acquireVsCodeApi();
@@ -1239,6 +1356,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             const message = event.data;
             if (message.command === 'resetScroll') {
                 window.scrollTo(0, 0);
+            } else if (message.command === 'showSearch') {
+                showSearch();
             }
         });
 
@@ -1362,20 +1481,285 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             wrapCodeBlocks();
         }
 
+        // Search functionality
+        class SearchManager {
+            constructor() {
+                this.currentIndex = -1;
+                this.matches = [];
+                this.searchTerm = '';
+                this.caseSensitive = false;
+            }
+
+            search(term, caseSensitive = false) {
+                this.searchTerm = term;
+                this.caseSensitive = caseSensitive;
+                this.clearHighlights();
+
+                if (!term) {
+                    this.updateResults();
+                    return;
+                }
+
+                this.highlightMatches();
+                this.currentIndex = this.matches.length > 0 ? 0 : -1;
+                this.updateResults();
+                if (this.currentIndex >= 0) {
+                    this.scrollToCurrentMatch();
+                }
+            }
+
+            highlightMatches() {
+                const content = document.body;
+                const walker = document.createTreeWalker(
+                    content,
+                    NodeFilter.SHOW_TEXT,
+                    null
+                );
+
+                const nodesToHighlight = [];
+                let node;
+
+                while (node = walker.nextNode()) {
+                    if (this.shouldSkipNode(node)) continue;
+
+                    const text = node.textContent;
+                    const regex = new RegExp(
+                        this.escapeRegExp(this.searchTerm),
+                        this.caseSensitive ? 'g' : 'gi'
+                    );
+
+                    if (regex.test(text)) {
+                        nodesToHighlight.push(node);
+                    }
+                }
+
+                nodesToHighlight.forEach(node => {
+                    this.highlightNode(node);
+                });
+            }
+
+            highlightNode(node) {
+                const text = node.textContent;
+                const regex = new RegExp(
+                    this.escapeRegExp(this.searchTerm),
+                    this.caseSensitive ? 'g' : 'gi'
+                );
+
+                const fragment = document.createDocumentFragment();
+                let lastIndex = 0;
+                let match;
+
+                while ((match = regex.exec(text)) !== null) {
+                    if (match.index > lastIndex) {
+                        fragment.appendChild(
+                            document.createTextNode(text.slice(lastIndex, match.index))
+                        );
+                    }
+
+                    const mark = document.createElement('mark');
+                    mark.className = 'search-highlight';
+                    mark.textContent = match[0];
+                    fragment.appendChild(mark);
+                    this.matches.push(mark);
+
+                    lastIndex = regex.lastIndex;
+                }
+
+                if (lastIndex < text.length) {
+                    fragment.appendChild(
+                        document.createTextNode(text.slice(lastIndex))
+                    );
+                }
+
+                node.parentNode.replaceChild(fragment, node);
+            }
+
+            clearHighlights() {
+                const marks = document.querySelectorAll('mark.search-highlight');
+                marks.forEach(mark => {
+                    const text = document.createTextNode(mark.textContent);
+                    mark.parentNode.replaceChild(text, mark);
+                });
+                this.matches = [];
+                this.currentIndex = -1;
+            }
+
+            nextMatch() {
+                if (this.matches.length === 0) return;
+                this.currentIndex = (this.currentIndex + 1) % this.matches.length;
+                this.scrollToCurrentMatch();
+                this.updateResults();
+            }
+
+            previousMatch() {
+                if (this.matches.length === 0) return;
+                this.currentIndex = this.currentIndex <= 0
+                    ? this.matches.length - 1
+                    : this.currentIndex - 1;
+                this.scrollToCurrentMatch();
+                this.updateResults();
+            }
+
+            scrollToCurrentMatch() {
+                if (this.currentIndex < 0 || this.currentIndex >= this.matches.length) {
+                    return;
+                }
+
+                const currentMatch = this.matches[this.currentIndex];
+
+                this.matches.forEach((mark, i) => {
+                    if (i === this.currentIndex) {
+                        mark.classList.add('search-highlight-current');
+                    } else {
+                        mark.classList.remove('search-highlight-current');
+                    }
+                });
+
+                currentMatch.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+
+            updateResults() {
+                const resultsEl = document.getElementById('search-results');
+                if (!resultsEl) return;
+
+                if (this.matches.length === 0) {
+                    resultsEl.textContent = this.searchTerm ? 'No results' : '';
+                } else {
+                    resultsEl.textContent = \`\${this.currentIndex + 1}/\${this.matches.length}\`;
+                }
+            }
+
+            shouldSkipNode(node) {
+                let parent = node.parentElement;
+                while (parent) {
+                    const tag = parent.tagName?.toLowerCase();
+                    if (tag === 'script' || tag === 'style' ||
+                        parent.classList?.contains('search-container') ||
+                        parent.classList?.contains('file-path-header') ||
+                        parent.classList?.contains('headings-list-dropdown')) {
+                        return true;
+                    }
+                    parent = parent.parentElement;
+                }
+                return false;
+            }
+
+            escapeRegExp(string) {
+                return string.replace(/[.*+?^$\{\}()|[\\]\\\\]/g, '\\\\$&');
+            }
+        }
+
+        const searchManager = new SearchManager();
+        let searchTimeout;
+
+        function initSearch() {
+            const searchSection = document.getElementById('search-section');
+            const searchInput = document.getElementById('search-input');
+            const searchPrev = document.getElementById('search-prev');
+            const searchNext = document.getElementById('search-next');
+            const searchClose = document.getElementById('search-close');
+            const caseSensitiveCheckbox = document.getElementById('search-case-sensitive');
+
+            if (!searchSection || !searchInput || !searchPrev || !searchNext || !searchClose || !caseSensitiveCheckbox) {
+                return;
+            }
+
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchManager.search(
+                        searchInput.value,
+                        caseSensitiveCheckbox.checked
+                    );
+                }, 300);
+            });
+
+            caseSensitiveCheckbox.addEventListener('change', () => {
+                if (searchInput.value) {
+                    searchManager.search(
+                        searchInput.value,
+                        caseSensitiveCheckbox.checked
+                    );
+                }
+            });
+
+            searchNext.addEventListener('click', () => {
+                searchManager.nextMatch();
+            });
+
+            searchPrev.addEventListener('click', () => {
+                searchManager.previousMatch();
+            });
+
+            searchClose.addEventListener('click', () => {
+                hideSearch();
+            });
+
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        searchManager.previousMatch();
+                    } else {
+                        searchManager.nextMatch();
+                    }
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    hideSearch();
+                }
+            });
+        }
+
+        function showSearch() {
+            const searchSection = document.getElementById('search-section');
+            const searchInput = document.getElementById('search-input');
+            if (!searchSection || !searchInput) return;
+
+            searchSection.classList.remove('hidden');
+            searchInput.focus();
+            searchInput.select();
+        }
+
+        function hideSearch() {
+            const searchSection = document.getElementById('search-section');
+            const searchInput = document.getElementById('search-input');
+            if (!searchSection || !searchInput) return;
+
+            searchSection.classList.add('hidden');
+            searchManager.clearHighlights();
+            searchInput.value = '';
+        }
+
         // Initialize enhancements when DOM is ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initPreviewEnhancements);
+            document.addEventListener('DOMContentLoaded', () => {
+                initPreviewEnhancements();
+                initSearch();
+            });
         } else {
             initPreviewEnhancements();
+            initSearch();
         }
 
         window.addEventListener('keydown', (event) => {
+            // 検索入力がフォーカスされている場合はショートカットキーをスキップ
+            const searchInput = document.getElementById('search-input');
+            if (searchInput && document.activeElement === searchInput) {
+                return;
+            }
+
             if (event.key === 'ArrowRight') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'navigateNext' });
             } else if (event.key === 'ArrowLeft') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'navigatePrevious' });
+            } else if (event.key === 'f') {
+                event.preventDefault();
+                showSearch();
             } else if (event.key === 'p') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'togglePin' });
@@ -1403,6 +1787,30 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         <div class="file-path-section">
             <span class="file-path-label">${fileIcon}</span>
             <code class="file-path">${relativePath}</code>
+        </div>
+        <div id="search-section" class="search-section hidden">
+            <input
+                type="text"
+                id="search-input"
+                class="search-input"
+                placeholder="Find..."
+            >
+            <div class="search-controls">
+                <span id="search-results" class="search-results"></span>
+                <button id="search-prev" class="search-button" title="Previous (Shift+Enter)">
+                    <span>↑</span>
+                </button>
+                <button id="search-next" class="search-button" title="Next (Enter)">
+                    <span>↓</span>
+                </button>
+                <label class="search-option" title="Case sensitive">
+                    <input type="checkbox" id="search-case-sensitive">
+                    <span>Aa</span>
+                </label>
+                <button id="search-close" class="search-button" title="Close (Esc)">
+                    <span>✕</span>
+                </button>
+            </div>
         </div>
         <div id="headings-container" class="headings-container">
             <div class="headings-header">
