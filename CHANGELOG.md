@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.6] - 2025-11-22
 
 ### Added
-- Keyboard shortcut `r` to reset zoom level to default
+- Keyboard shortcut `r` to reset zoom level to 100%
 - Keyboard shortcut `t` to toggle between light and dark themes
+- Notification messages when using keyboard shortcuts:
+  - "Zoom: 100%" when pressing `r`
+  - "Theme: Light" or "Theme: Dark" when pressing `t`
 
 ### Changed
 - Updated toolbar tooltips to display keyboard shortcuts for reset zoom and theme toggle

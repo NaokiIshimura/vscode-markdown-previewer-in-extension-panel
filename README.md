@@ -13,7 +13,7 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 | Headings | Hover to expand | Displays a navigation panel with h1-h3 headings in the document (located in the file path header, expands as dropdown on mouse hover) |
 | Light Theme<br>Dark Theme | `t` | Switch between light and dark theme for the preview |
 | Zoom In<br>Zoom Out | `+`<br>`-` | Zoom in/out the preview (displays current zoom level) |
-| Reset Zoom | `r` | Reset zoom level to default |
+| Reset Zoom | `r` | Reset zoom level to 100% |
 | Navigate Previous<br>Navigate Next | `←`<br>`→` | Navigate to the previous/next Markdown file in the current directory (works even when pinned) |
 | Pin<br>Unpin | `p` | Freeze the preview on the currently displayed Markdown file or return to follow mode |
 | Edit | `e` | Open the previewed document in an editor tab |
