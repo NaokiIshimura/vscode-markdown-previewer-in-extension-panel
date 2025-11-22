@@ -185,7 +185,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     }
 
     public resetZoom(): void {
-        this.applyZoomChange(this.getDefaultZoomLevel());
+        this.applyZoomChange(100);
     }
 
     public onConfigurationChanged(): void {
