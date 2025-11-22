@@ -136,6 +136,16 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 case 'showSearch':
                     // Search is handled in webview
                     break;
+                case 'copySuccess':
+                    vscode.window.showInformationMessage(
+                        `Copied file path: ${message.filePath}`
+                    );
+                    break;
+                case 'copyFailed':
+                    vscode.window.showErrorMessage(
+                        `Failed to copy file path: ${message.error}`
+                    );
+                    break;
             }
         });
 
@@ -1112,7 +1122,11 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         .file-path-section {
-            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1 1 auto;
+            min-width: 0;
         }
 
         .file-path {
@@ -1123,6 +1137,38 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
         .file-path-label {
             margin-right: 8px;
+        }
+
+        .file-path.clickable {
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            position: relative;
+            padding-right: 22px;
+        }
+
+        .file-path.clickable:hover {
+            background-color: var(--copy-button-background-hover);
+            border-radius: 3px;
+        }
+
+        .file-path.clickable .copy-icon {
+            display: inline-block;
+            font-size: 0.85em;
+            opacity: 0;
+            margin-left: 4px;
+            transition: opacity 0.2s;
+        }
+
+        .file-path.clickable:hover .copy-icon {
+            opacity: 1;
+        }
+
+        .file-path.clickable.copied {
+            color: var(--md-link);
+        }
+
+        .file-path.clickable.copied .copy-icon {
+            opacity: 1;
         }
 
         .headings-container {
@@ -1364,6 +1410,38 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         // Initialize headings
         const headings = ${headingsJson};
 
+        // Headings panel state management
+        let headingsManuallyVisible = false;
+
+        function toggleHeadings() {
+            const headingsListDropdown = document.getElementById('headings-list-dropdown');
+            if (!headingsListDropdown) return;
+
+            headingsManuallyVisible = !headingsManuallyVisible;
+
+            if (headingsManuallyVisible) {
+                headingsListDropdown.classList.add('show');
+            } else {
+                headingsListDropdown.classList.remove('show');
+            }
+        }
+
+        function showHeadings() {
+            const headingsListDropdown = document.getElementById('headings-list-dropdown');
+            if (!headingsListDropdown) return;
+
+            headingsManuallyVisible = true;
+            headingsListDropdown.classList.add('show');
+        }
+
+        function hideHeadings() {
+            const headingsListDropdown = document.getElementById('headings-list-dropdown');
+            if (!headingsListDropdown) return;
+
+            headingsManuallyVisible = false;
+            headingsListDropdown.classList.remove('show');
+        }
+
         function initHeadings() {
             const headingsContainer = document.getElementById('headings-container');
             const headingsListDropdown = document.getElementById('headings-list-dropdown');
@@ -1412,7 +1490,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
             headingsContainer.addEventListener('mouseleave', () => {
                 hideTimeout = setTimeout(() => {
-                    if (!headingsListDropdown.matches(':hover')) {
+                    if (!headingsListDropdown.matches(':hover') && !headingsManuallyVisible) {
                         headingsListDropdown.classList.remove('show');
                     }
                 }, 700); // 700ms delay to allow slow mouse movement to dropdown
@@ -1424,7 +1502,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             });
 
             headingsListDropdown.addEventListener('mouseleave', () => {
-                headingsListDropdown.classList.remove('show');
+                if (!headingsManuallyVisible) {
+                    headingsListDropdown.classList.remove('show');
+                }
             });
         }
 
@@ -1733,15 +1813,87 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             searchInput.value = '';
         }
 
+        function copyFilePath() {
+            const filePathElement = document.querySelector('.file-path');
+            if (!filePathElement) return;
+
+            const copyIcon = filePathElement.querySelector('.copy-icon');
+            const filePath = filePathElement.textContent.replace('📋', '').trim();
+
+            navigator.clipboard.writeText(filePath).then(() => {
+                // Success - send message to VS Code to show notification
+                vscode.postMessage({
+                    command: 'copySuccess',
+                    filePath: filePath
+                });
+
+                // Visual feedback in webview
+                showCopyFeedback(filePathElement, copyIcon, true);
+            }).catch(err => {
+                console.error('Failed to copy file path:', err);
+
+                // Error - send message to VS Code to show error notification
+                vscode.postMessage({
+                    command: 'copyFailed',
+                    error: err.message
+                });
+
+                // Visual feedback in webview
+                showCopyFeedback(filePathElement, copyIcon, false);
+            });
+        }
+
+        function showCopyFeedback(element, iconElement, success) {
+            if (success) {
+                // Success feedback
+                element.classList.add('copied');
+                const originalTitle = element.title;
+                const originalIcon = iconElement.textContent;
+                element.title = 'Copied!';
+                iconElement.textContent = '✓';
+
+                setTimeout(() => {
+                    element.classList.remove('copied');
+                    element.title = originalTitle;
+                    iconElement.textContent = originalIcon;
+                }, 1500);
+            } else {
+                // Error feedback
+                const originalTitle = element.title;
+                const originalIcon = iconElement.textContent;
+                element.title = 'Copy failed';
+                iconElement.textContent = '✗';
+                element.style.color = '#f44336';
+
+                setTimeout(() => {
+                    element.title = originalTitle;
+                    iconElement.textContent = originalIcon;
+                    element.style.color = '';
+                }, 1500);
+            }
+        }
+
+        function initFilePathCopy() {
+            const filePathElement = document.querySelector('.file-path');
+
+            if (!filePathElement) return;
+
+            filePathElement.addEventListener('click', () => {
+                copyFilePath();
+            });
+        }
+
         // Initialize enhancements when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 initPreviewEnhancements();
                 initSearch();
+                initFilePathCopy();
             });
         } else {
             initPreviewEnhancements();
             initSearch();
+            initFilePathCopy();
         }
 
         window.addEventListener('keydown', (event) => {
@@ -1760,6 +1912,12 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === 'f') {
                 event.preventDefault();
                 showSearch();
+            } else if (event.key === 'h') {
+                event.preventDefault();
+                toggleHeadings();
+            } else if (event.key === 'c') {
+                event.preventDefault();
+                copyFilePath();
             } else if (event.key === 'p') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'togglePin' });
@@ -1786,7 +1944,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     <div class="file-path-header">
         <div class="file-path-section">
             <span class="file-path-label">${fileIcon}</span>
-            <code class="file-path">${relativePath}</code>
+            <code class="file-path clickable" title="Click to copy (or press 'c')">${relativePath}<span class="copy-icon">📋</span></code>
         </div>
         <div id="search-section" class="search-section hidden">
             <input
