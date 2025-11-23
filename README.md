@@ -10,7 +10,7 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 
 | Feature | Shortcut | Description |
 | --- | --- | --- |
-| Headings | `h` or Hover | Toggle headings panel or expand on hover; displays h1-h3 navigation in the file path header |
+| Headings | `h` or Hover | Toggle headings panel or expand on hover; displays h1-h6 navigation in the file path header |
 | Search | `f` | Shows search bar with case-sensitive option; navigate matches with Enter/Shift+Enter, close with Esc |
 | File Path Copy | `c` or Click path | Copy the file path to clipboard by pressing `c` key or clicking the file path; shows VS Code notification message |
 | Light Theme<br>Dark Theme | `t` | Switch between light and dark theme for the preview |
@@ -47,7 +47,7 @@ npm run watch    # incremental build while developing
 Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window.
 
 ## Tips & Known Limitations
-- The Headings panel automatically extracts h1-h3 headings from your Markdown document and provides clickable navigation.
+- The Headings panel automatically extracts h1-h6 headings from your Markdown document and provides clickable navigation.
 - The Headings panel is located in the file path header area at the top of the preview.
 - Hover over the Headings title to expand the navigation dropdown menu.
 - Clicking on a heading in the dropdown smoothly scrolls to that section in the preview.
