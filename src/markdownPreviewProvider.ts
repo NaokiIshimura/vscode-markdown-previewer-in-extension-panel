@@ -1971,7 +1971,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             </div>
         </div>
         <div id="headings-container" class="headings-container">
-            <div class="headings-header">
+            <div class="headings-header" title="Toggle headings panel [h]">
                 <span class="headings-title">Headings</span>
             </div>
         </div>
@@ -2101,8 +2101,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             const token = tokens[i];
             if (token.type === 'heading_open') {
                 const level = parseInt(token.tag.substring(1), 10);
-                // Only include h1, h2, and h3 headings in TOC
-                if (level <= 3) {
+                // Include all heading levels (h1-h6) in TOC
+                if (level <= 6) {
                     const contentToken = tokens[i + 1];
                     if (contentToken && contentToken.type === 'inline' && contentToken.content) {
                         const text = contentToken.content;

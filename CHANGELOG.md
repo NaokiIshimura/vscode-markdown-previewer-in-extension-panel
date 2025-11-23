@@ -5,6 +5,19 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.9] - 2025-11-23
+
+### Added
+- Tooltip on headings panel showing keyboard shortcut hint
+  - Displays "Toggle headings panel [h]" when hovering over the headings header
+  - Improves discoverability of the keyboard shortcut
+
+### Changed
+- Headings panel now displays all heading levels (h1-h6)
+  - Previously only showed h1-h3 headings
+  - h4-h6 headings are now included with appropriate indentation
+  - Provides complete document structure navigation
+
 ## [0.3.8] - 2025-11-23
 
 ### Added
