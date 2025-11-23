@@ -1,0 +1,57 @@
+name: Publish to VS Code Marketplace
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run compile
+
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+
+      - name: Determine version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Package VSIX
+        run: |
+          mkdir -p releases
+          vsce package --allow-missing-repository --skip-license --out releases/markdown-previewer-in-extension-panel-${VERSION}.vsix
+
+      - name: Publish to VS Code Marketplace
+        continue-on-error: true
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "VSCE_PAT is not set. Skipping VS Code Marketplace publishing."
+            exit 0
+          fi
+          vsce publish --pat $VSCE_PAT --packagePath releases/markdown-previewer-in-extension-panel-${{ env.VERSION }}.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
