@@ -16,6 +16,12 @@ interface HeadingInfo {
     id: string;
 }
 
+interface FileListInfo {
+    files: string[];
+    currentIndex: number;
+    currentFile: string;
+}
+
 type PreviewTheme = 'light' | 'dark';
 
 export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
@@ -145,6 +151,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                     vscode.window.showErrorMessage(
                         `Failed to copy file path: ${message.error}`
                     );
+                    break;
+                case 'navigateToFile':
+                    void this.navigateToFileByName(message.fileName);
                     break;
             }
         });
@@ -346,8 +355,15 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const relativePath = this.getRelativeFilePath(targetDocument.uri);
         const isOpenInEditor = this.isFileOpenInEditor(targetDocument.uri);
         const fileIcon = isOpenInEditor ? '📝' : '📄';
+
+        // Get file list info
+        const files = await this.getMarkdownFilesInDirectory(targetDocument.uri);
+        const currentFile = path.basename(targetDocument.uri.fsPath);
+        const currentIndex = files.indexOf(currentFile);
+        const fileListInfo: FileListInfo = { files, currentIndex, currentFile };
+
         this.setCanPin(true);
-        this._view.webview.html = this.getWebviewContent(this._view.webview, htmlContent, relativePath, fileIcon, headings);
+        this._view.webview.html = this.getWebviewContent(this._view.webview, htmlContent, relativePath, fileIcon, headings, fileListInfo);
 
         // Reset scroll position if document has changed
         if (isDocumentChanged) {
@@ -469,6 +485,35 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             console.error('Failed to open document:', error);
             void vscode.window.showErrorMessage('Failed to open file');
         }
+    }
+
+    public async navigateToFileByName(fileName: string): Promise<void> {
+        // Invalidate cache to get latest directory state
+        this.invalidateFileListCache();
+
+        // Get current URI
+        const currentUri = this._currentPreviewUri ?? vscode.window.activeTextEditor?.document.uri;
+        if (!currentUri) {
+            return;
+        }
+
+        // Get file list
+        const files = await this.getMarkdownFilesInDirectory(currentUri);
+        if (!files.includes(fileName)) {
+            void vscode.window.showErrorMessage(`File not found: ${fileName}`);
+            return;
+        }
+
+        // Navigate to selected file
+        const dirUri = vscode.Uri.joinPath(currentUri, '..');
+        const targetUri = vscode.Uri.joinPath(dirUri, fileName);
+        await this.updatePreviewWithUri(targetUri);
+        // Update pin target if pinned
+        if (this._isPinned) {
+            this._pinnedUri = targetUri;
+            this._pinnedFileName = fileName;
+        }
+        void vscode.window.showInformationMessage(`Switched preview to ${fileName}`);
     }
 
     public async togglePin(): Promise<void> {
@@ -784,13 +829,14 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         return roots;
     }
 
-    private getWebviewContent(webview: vscode.Webview, htmlContent: string, relativePath: string, fileIcon: string, headings: HeadingInfo[]): string {
+    private getWebviewContent(webview: vscode.Webview, htmlContent: string, relativePath: string, fileIcon: string, headings: HeadingInfo[], fileListInfo: FileListInfo): string {
         const themeClass = this.getThemeClass();
         const colorScheme = this._theme === 'dark' ? 'dark' : 'light';
         const fontSize = Math.max(this._minZoom, Math.min(this._maxZoom, this._zoomLevel)) / 100;
         const mermaidTheme = this.getMermaidTheme();
         const convertedHtml = this.convertMermaidBlocks(htmlContent);
         const headingsJson = JSON.stringify(headings);
+        const fileListJson = JSON.stringify(fileListInfo);
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1388,6 +1434,126 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         body.theme-dark mark.search-highlight-current {
             background-color: rgba(255, 165, 0, 0.4);
         }
+
+        /* File List Panel Styles */
+        .filelist-container {
+            position: relative;
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin-left: 8px;
+        }
+
+        .filelist-header {
+            margin: 0;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+        }
+
+        .filelist-title {
+            font-weight: bold;
+            font-size: 0.9em;
+            color: var(--md-foreground);
+        }
+
+        .filelist-dropdown {
+            position: fixed;
+            top: 45px;
+            left: 16px;
+            max-width: 300px;
+            max-height: calc(100vh - 60px);
+            overflow-y: auto;
+            background-color: var(--file-path-background);
+            border: 1px solid var(--file-path-border);
+            border-radius: 6px;
+            padding: 12px;
+            z-index: 99;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .filelist-dropdown.show {
+            display: block;
+        }
+
+        body.theme-dark .filelist-dropdown {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .filelist-info {
+            font-size: 0.8em;
+            color: var(--md-foreground);
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--file-path-border);
+        }
+
+        .filelist-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .filelist-item {
+            margin: 2px 0;
+        }
+
+        .filelist-link {
+            display: block;
+            color: var(--md-foreground);
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            line-height: 1.4;
+            cursor: pointer;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .filelist-link:hover {
+            background-color: var(--md-code-background);
+        }
+
+        .filelist-item.current .filelist-link {
+            background-color: var(--md-link);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .filelist-item.current .filelist-link:hover {
+            background-color: var(--md-link);
+            opacity: 0.9;
+        }
+
+        .filelist-item.selected .filelist-link {
+            outline: 2px solid var(--md-link);
+            outline-offset: -2px;
+        }
+
+        .filelist-item.selected:not(.current) .filelist-link {
+            background-color: var(--md-code-background);
+        }
+
+        .filelist-dropdown::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .filelist-dropdown::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .filelist-dropdown::-webkit-scrollbar-thumb {
+            background: var(--md-quote-border);
+            border-radius: 4px;
+        }
+
+        .filelist-dropdown::-webkit-scrollbar-thumb:hover {
+            background: var(--md-heading-border);
+        }
     </style>
     <script>
         const vscode = acquireVsCodeApi();
@@ -1409,6 +1575,201 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
         // Initialize headings
         const headings = ${headingsJson};
+
+        // Initialize file list
+        const fileListInfo = ${fileListJson};
+        let fileListAutoHideTimeout = null;
+        let fileListSelectedIndex = fileListInfo.currentIndex;
+
+        // File list panel state management
+        let fileListManuallyVisible = false;
+
+        function toggleFileList() {
+            const fileListDropdown = document.getElementById('filelist-dropdown');
+            if (!fileListDropdown) return;
+
+            fileListManuallyVisible = !fileListManuallyVisible;
+
+            if (fileListManuallyVisible) {
+                fileListDropdown.classList.add('show');
+                fileListSelectedIndex = fileListInfo.currentIndex;
+                updateFileListSelection();
+                scrollToSelectedFileInList();
+            } else {
+                fileListDropdown.classList.remove('show');
+            }
+        }
+
+        function isFileListVisible() {
+            const fileListDropdown = document.getElementById('filelist-dropdown');
+            return fileListDropdown && fileListDropdown.classList.contains('show');
+        }
+
+        function navigateFileListUp() {
+            if (fileListSelectedIndex > 0) {
+                fileListSelectedIndex--;
+                updateFileListSelection();
+                scrollToSelectedFileInList();
+            }
+        }
+
+        function navigateFileListDown() {
+            if (fileListSelectedIndex < fileListInfo.files.length - 1) {
+                fileListSelectedIndex++;
+                updateFileListSelection();
+                scrollToSelectedFileInList();
+            }
+        }
+
+        function selectCurrentFileListItem() {
+            if (fileListSelectedIndex >= 0 && fileListSelectedIndex < fileListInfo.files.length) {
+                const fileName = fileListInfo.files[fileListSelectedIndex];
+                vscode.postMessage({
+                    command: 'navigateToFile',
+                    fileName: fileName
+                });
+                fileListManuallyVisible = false;
+                const fileListDropdown = document.getElementById('filelist-dropdown');
+                if (fileListDropdown) {
+                    fileListDropdown.classList.remove('show');
+                }
+            }
+        }
+
+        function updateFileListSelection() {
+            const items = document.querySelectorAll('.filelist-item');
+            items.forEach((item, index) => {
+                if (index === fileListSelectedIndex) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        function scrollToSelectedFileInList() {
+            const selectedItem = document.querySelector('.filelist-item.selected');
+            if (selectedItem) {
+                selectedItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+        }
+
+        function scrollToCurrentFileInList() {
+            const currentItem = document.querySelector('.filelist-item.current');
+            if (currentItem) {
+                currentItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+        }
+
+        function showFileListTemporarily(duration = 10000) {
+            const fileListDropdown = document.getElementById('filelist-dropdown');
+            if (!fileListDropdown) return;
+
+            // Clear any existing timeout
+            if (fileListAutoHideTimeout) {
+                clearTimeout(fileListAutoHideTimeout);
+            }
+
+            fileListDropdown.classList.add('show');
+            scrollToCurrentFileInList();
+
+            // Auto-hide after duration (unless manually visible)
+            if (!fileListManuallyVisible) {
+                fileListAutoHideTimeout = setTimeout(() => {
+                    if (!fileListManuallyVisible) {
+                        fileListDropdown.classList.remove('show');
+                    }
+                }, duration);
+            }
+        }
+
+        function scrollToCurrentFileInList() {
+            const currentItem = document.querySelector('.filelist-item.current');
+            if (currentItem) {
+                currentItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+        }
+
+        function initFileList() {
+            const fileListContainer = document.getElementById('filelist-container');
+            const fileListDropdown = document.getElementById('filelist-dropdown');
+            const fileListItems = document.getElementById('filelist-list');
+            const fileListInfoEl = document.getElementById('filelist-info');
+
+            if (!fileListContainer || !fileListDropdown || !fileListItems) {
+                return;
+            }
+
+            // Hide file list panel if only one or no files
+            if (fileListInfo.files.length <= 1) {
+                fileListContainer.style.display = 'none';
+                fileListDropdown.style.display = 'none';
+                return;
+            }
+
+            // Update info text
+            if (fileListInfoEl) {
+                const current = fileListInfo.currentIndex >= 0 ? fileListInfo.currentIndex + 1 : 0;
+                fileListInfoEl.textContent = current + ' / ' + fileListInfo.files.length + ' files';
+            }
+
+            // Generate file list items
+            fileListInfo.files.forEach((file, index) => {
+                const li = document.createElement('li');
+                li.className = 'filelist-item';
+                if (index === fileListInfo.currentIndex) {
+                    li.classList.add('current');
+                }
+
+                const link = document.createElement('a');
+                link.className = 'filelist-link';
+                link.textContent = file;
+                link.title = file;
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    vscode.postMessage({
+                        command: 'navigateToFile',
+                        fileName: file
+                    });
+                });
+
+                li.appendChild(link);
+                fileListItems.appendChild(li);
+            });
+
+            // Hover event handling with delay for smooth UX
+            let hideTimeout;
+
+            fileListContainer.addEventListener('mouseenter', () => {
+                clearTimeout(hideTimeout);
+                if (fileListAutoHideTimeout) {
+                    clearTimeout(fileListAutoHideTimeout);
+                }
+                fileListDropdown.classList.add('show');
+            });
+
+            fileListContainer.addEventListener('mouseleave', () => {
+                hideTimeout = setTimeout(() => {
+                    if (!fileListDropdown.matches(':hover') && !fileListManuallyVisible) {
+                        fileListDropdown.classList.remove('show');
+                    }
+                }, 700);
+            });
+
+            fileListDropdown.addEventListener('mouseenter', () => {
+                clearTimeout(hideTimeout);
+                if (fileListAutoHideTimeout) {
+                    clearTimeout(fileListAutoHideTimeout);
+                }
+                fileListDropdown.classList.add('show');
+            });
+
+            fileListDropdown.addEventListener('mouseleave', () => {
+                if (!fileListManuallyVisible) {
+                    fileListDropdown.classList.remove('show');
+                }
+            });
+        }
 
         // Headings panel state management
         let headingsManuallyVisible = false;
@@ -1558,6 +1919,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
         function initPreviewEnhancements() {
             initHeadings();
+            initFileList();
             wrapCodeBlocks();
         }
 
@@ -1903,18 +2265,68 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 return;
             }
 
+            // File list navigation when visible
+            if (isFileListVisible() && fileListManuallyVisible) {
+                if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+                    event.preventDefault();
+                    navigateFileListUp();
+                    return;
+                } else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+                    event.preventDefault();
+                    navigateFileListDown();
+                    return;
+                } else if (event.key === 'Enter') {
+                    event.preventDefault();
+                    selectCurrentFileListItem();
+                    return;
+                } else if (event.key === 'Escape') {
+                    event.preventDefault();
+                    fileListManuallyVisible = false;
+                    const fileListDropdown = document.getElementById('filelist-dropdown');
+                    if (fileListDropdown) {
+                        fileListDropdown.classList.remove('show');
+                    }
+                    return;
+                }
+            }
+
             if (event.key === 'ArrowRight') {
                 event.preventDefault();
-                vscode.postMessage({ command: 'navigateNext' });
+                // Show file list and move selection down
+                if (!isFileListVisible()) {
+                    fileListManuallyVisible = true;
+                    fileListSelectedIndex = fileListInfo.currentIndex;
+                    const fileListDropdown = document.getElementById('filelist-dropdown');
+                    if (fileListDropdown) {
+                        fileListDropdown.classList.add('show');
+                    }
+                    updateFileListSelection();
+                    scrollToSelectedFileInList();
+                }
+                navigateFileListDown();
             } else if (event.key === 'ArrowLeft') {
                 event.preventDefault();
-                vscode.postMessage({ command: 'navigatePrevious' });
+                // Show file list and move selection up
+                if (!isFileListVisible()) {
+                    fileListManuallyVisible = true;
+                    fileListSelectedIndex = fileListInfo.currentIndex;
+                    const fileListDropdown = document.getElementById('filelist-dropdown');
+                    if (fileListDropdown) {
+                        fileListDropdown.classList.add('show');
+                    }
+                    updateFileListSelection();
+                    scrollToSelectedFileInList();
+                }
+                navigateFileListUp();
             } else if (event.key === 'f') {
                 event.preventDefault();
                 showSearch();
             } else if (event.key === 'h') {
                 event.preventDefault();
                 toggleHeadings();
+            } else if (event.key === 'l') {
+                event.preventDefault();
+                toggleFileList();
             } else if (event.key === 'c') {
                 event.preventDefault();
                 copyFilePath();
@@ -1970,11 +2382,20 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 </button>
             </div>
         </div>
+        <div id="filelist-container" class="filelist-container">
+            <div class="filelist-header" title="Toggle file list panel [l]">
+                <span class="filelist-title">Files</span>
+            </div>
+        </div>
         <div id="headings-container" class="headings-container">
             <div class="headings-header" title="Toggle headings panel [h]">
                 <span class="headings-title">Headings</span>
             </div>
         </div>
+    </div>
+    <div id="filelist-dropdown" class="filelist-dropdown">
+        <div id="filelist-info" class="filelist-info"></div>
+        <ul id="filelist-list" class="filelist-list"></ul>
     </div>
     <div id="headings-list-dropdown" class="headings-list-dropdown">
         <ul id="headings-list" class="headings-list"></ul>

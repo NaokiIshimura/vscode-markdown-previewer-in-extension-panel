@@ -5,6 +5,24 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-11-29
+
+### Added
+- File list panel showing all Markdown files in current directory
+  - Press `l` key to toggle file list panel visibility
+  - Hover over "Files" in header to expand the panel
+  - Current file is highlighted in the list
+  - Click any file to switch to it
+  - Displays file count indicator (e.g., "3 / 10 files")
+- File list auto-display when navigating with arrow keys
+  - Panel appears temporarily for 3 seconds when using left/right arrow navigation
+  - Provides visual feedback of current position within directory
+  - Auto-hides after timeout unless manually toggled
+
+### Changed
+- Navigate Previous/Next now shows file list panel temporarily
+- Updated README with file list feature documentation
+
 ## [0.3.9] - 2025-11-23
 
 ### Added
