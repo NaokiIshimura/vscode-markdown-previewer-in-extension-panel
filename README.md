@@ -48,6 +48,9 @@ npm run watch    # incremental build while developing
 Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window.
 
 ## Tips & Known Limitations
+- The File List panel displays all Markdown files in the same directory as the current file, with the current file highlighted.
+- Press `l` to toggle the file list, or hover over "Files" in the header. Click any file to switch to it.
+- When using left/right arrow keys to navigate, the file list panel appears temporarily for 3 seconds.
 - The Headings panel automatically extracts h1-h6 headings from your Markdown document and provides clickable navigation.
 - The Headings panel is located in the file path header area at the top of the preview.
 - Hover over the Headings title to expand the navigation dropdown menu.
