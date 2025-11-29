@@ -10,13 +10,14 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 
 | Feature | Shortcut | Description |
 | --- | --- | --- |
+| File List | `l` or Hover | Toggle file list panel showing all Markdown files in current directory; current file is highlighted |
 | Headings | `h` or Hover | Toggle headings panel or expand on hover; displays h1-h6 navigation in the file path header |
 | Search | `f` | Shows search bar with case-sensitive option; navigate matches with Enter/Shift+Enter, close with Esc |
 | File Path Copy | `c` or Click path | Copy the file path to clipboard by pressing `c` key or clicking the file path; shows VS Code notification message |
 | Light Theme<br>Dark Theme | `t` | Switch between light and dark theme for the preview |
 | Zoom In<br>Zoom Out | `+`<br>`-` | Zoom in/out the preview (displays current zoom level) |
 | Reset Zoom | `r` | Reset zoom level to 100% |
-| Navigate Previous<br>Navigate Next | `←`<br>`→` | Navigate to the previous/next Markdown file in the current directory (works even when pinned) |
+| Navigate Previous<br>Navigate Next | `←`<br>`→` | Navigate to the previous/next Markdown file in the current directory; file list panel shows temporarily |
 | Pin<br>Unpin | `p` | Freeze the preview on the currently displayed Markdown file or return to follow mode |
 | Edit | `e` | Open the previewed document in an editor tab |
 | File Path Display | Always visible | Shows the relative path from project root at the top of the preview |
@@ -47,6 +48,9 @@ npm run watch    # incremental build while developing
 Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window.
 
 ## Tips & Known Limitations
+- The File List panel displays all Markdown files in the same directory as the current file, with the current file highlighted.
+- Press `l` to toggle the file list, or hover over "Files" in the header. Click any file to switch to it.
+- When using left/right arrow keys to navigate, the file list panel appears temporarily for 3 seconds.
 - The Headings panel automatically extracts h1-h6 headings from your Markdown document and provides clickable navigation.
 - The Headings panel is located in the file path header area at the top of the preview.
 - Hover over the Headings title to expand the navigation dropdown menu.
