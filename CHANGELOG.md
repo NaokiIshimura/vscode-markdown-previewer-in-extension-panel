@@ -5,6 +5,34 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-11-30
+
+### Added
+- File list panel for quick navigation between markdown files in the same directory
+  - Displays all markdown files in the current directory
+  - Shows current file highlighted in the list
+  - Click on a file name to switch preview to that file
+  - Located in the file path header next to the Headings panel
+  - Press `l` key to toggle file list panel visibility
+  - Hover over "File list" title to expand the dropdown
+  - Panel only appears when there are 2 or more markdown files in the directory
+  - Tooltip shows "Toggle file list panel [l]" on hover
+- Keyboard navigation for Headings and File list panels
+  - Use any arrow key (↑/↓/←/→) to navigate items when panel is open
+  - Press Enter to select the highlighted item
+  - Press Esc to close the panel
+  - Selected item is highlighted with accent color
+- File list panel automatically appears when using ←/→ navigation keys
+  - Shows the target file highlighted without immediate navigation
+  - Press Enter to confirm and navigate to the selected file
+  - Provides visual preview of file selection before actual navigation
+
+### Changed
+- Header layout reorganized with Headings and File list panels grouped together
+  - Both panels now appear in the same header section for better visual consistency
+  - Order: Headings, File list (left to right)
+- Increased z-index for Headings and File list dropdown panels to ensure they appear on top of other content
+
 ## [0.3.9] - 2025-11-23
 
 ### Added
