@@ -5,6 +5,15 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2025-12-06
+
+### Added
+- Copy as Quote feature for selected text
+  - Press `q` key to copy selected text with `> ` prefix on each line
+  - Useful for quoting content in issues, pull requests, or other Markdown documents
+  - Shows VS Code notification message on successful copy
+  - Shows message when no text is selected
+
 ## [0.4.1] - 2025-11-30
 
 ### Added

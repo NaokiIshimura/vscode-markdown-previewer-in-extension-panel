@@ -152,6 +152,28 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                         `Failed to copy file path: ${message.error}`
                     );
                     break;
+                case 'quoteSuccess':
+                    vscode.window.showInformationMessage('Copied as quote');
+                    break;
+                case 'quoteFailed':
+                    vscode.window.showErrorMessage(
+                        `Failed to copy as quote: ${message.error}`
+                    );
+                    break;
+                case 'quoteNoSelection':
+                    vscode.window.showInformationMessage('Select text to copy as quote');
+                    break;
+                case 'copySelectionSuccess':
+                    vscode.window.showInformationMessage('Copied');
+                    break;
+                case 'copySelectionFailed':
+                    vscode.window.showErrorMessage(
+                        `Failed to copy: ${message.error}`
+                    );
+                    break;
+                case 'copyNoSelection':
+                    vscode.window.showInformationMessage('Select text to copy');
+                    break;
                 case 'navigateToFile':
                     void this.navigateToFileByName(message.fileName);
                     break;
@@ -2404,6 +2426,60 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             });
         }
 
+        function copySelection() {
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) {
+                vscode.postMessage({ command: 'copyNoSelection' });
+                return;
+            }
+
+            const selectedText = selection.toString();
+            if (!selectedText.trim()) {
+                vscode.postMessage({ command: 'copyNoSelection' });
+                return;
+            }
+
+            navigator.clipboard.writeText(selectedText).then(() => {
+                vscode.postMessage({ command: 'copySelectionSuccess' });
+            }).catch(err => {
+                console.error('Failed to copy selection:', err);
+                vscode.postMessage({
+                    command: 'copySelectionFailed',
+                    error: err.message
+                });
+            });
+        }
+
+        function copyAsQuote() {
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) {
+                vscode.postMessage({ command: 'quoteNoSelection' });
+                return;
+            }
+
+            const selectedText = selection.toString();
+            if (!selectedText.trim()) {
+                vscode.postMessage({ command: 'quoteNoSelection' });
+                return;
+            }
+
+            // Add "> " prefix to each line
+            const quotedText = selectedText
+                .split('\\n')
+                .map(line => '> ' + line)
+                .join('\\n');
+
+            navigator.clipboard.writeText(quotedText).then(() => {
+                vscode.postMessage({ command: 'quoteSuccess' });
+            }).catch(err => {
+                console.error('Failed to copy as quote:', err);
+                vscode.postMessage({
+                    command: 'quoteFailed',
+                    error: err.message
+                });
+            });
+        }
+
         // Initialize enhancements when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
@@ -2498,9 +2574,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === 'l') {
                 event.preventDefault();
                 toggleFileList();
-            } else if (event.key === 'c') {
+            } else if (event.key === 'c' && !event.metaKey && !event.ctrlKey) {
                 event.preventDefault();
-                copyFilePath();
+                copySelection();
             } else if (event.key === 'p') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'togglePin' });
@@ -2519,6 +2595,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === 't') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'toggleTheme' });
+            } else if (event.key === 'q') {
+                event.preventDefault();
+                copyAsQuote();
             }
         });
     </script>
