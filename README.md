@@ -13,7 +13,9 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 | Headings | `h` or Hover | Toggle headings panel or expand on hover; displays h1-h6 navigation in the file path header. Use arrow keys to navigate, Enter to select, Esc to close |
 | File list | `l` or Hover | Toggle file list panel or expand on hover; displays markdown files in the same directory for quick navigation. Use arrow keys to navigate, Enter to select, Esc to close |
 | Search | `f` | Shows search bar with case-sensitive option; navigate matches with Enter/Shift+Enter, close with Esc |
-| File Path Copy | `c` or Click path | Copy the file path to clipboard by pressing `c` key or clicking the file path; shows VS Code notification message |
+| Copy | `c` | Copy selected text to clipboard; shows VS Code notification message |
+| File Path Copy | Click path | Copy the file path to clipboard by clicking the file path; shows VS Code notification message |
+| Copy as Quote | `q` | When text is selected, press `q` to copy selected text with `> ` prefix on each line for quoting in Markdown |
 | Light Theme<br>Dark Theme | `t` | Switch between light and dark theme for the preview |
 | Zoom In<br>Zoom Out | `+`<br>`-` | Zoom in/out the preview (displays current zoom level) |
 | Reset Zoom | `r` | Reset zoom level to 100% |
@@ -65,6 +67,7 @@ Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window
 - When no Markdown file is open, the preview automatically shows the workspace's README.md if available.
 - The preview persists even when switching to non-Markdown files, allowing you to keep your documentation visible while working on code.
 - When switching to a different Markdown file, the scroll position automatically resets to the top for a fresh viewing experience.
+- The Copy as Quote feature is useful for quoting content in issues, pull requests, or other Markdown documents.
 
 ## Feedback
 Please report bugs or request features via GitHub Issues. Screenshots and concise reproduction steps help us respond quickly.
