@@ -5,6 +5,22 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2025-12-07
+
+### Added
+- Keyboard shortcuts help overlay
+  - Press `s` key to display the help overlay showing all available keyboard shortcuts
+  - Hold the `s` key to keep the help overlay visible
+  - Release the `s` key or press `Esc` to close the help overlay
+  - Help overlay displays shortcuts organized by categories: Navigation, Panels, Editing, View, and Help
+  - Styled overlay with theme-aware colors matching the preview theme
+
+### Changed
+- Arrow key navigation improved for better user experience
+  - Left/Right arrow keys (`←`/`→`) now directly navigate to previous/next Markdown file instead of showing file list panel
+  - When panel is open (Headings or File list), arrow keys still navigate items within that panel
+  - When no panel is open, arrow keys trigger file navigation
+
 ## [0.4.2] - 2025-12-06
 
 ### Added

@@ -1,38 +1,42 @@
-# [v0.3.6] Add keyboard shortcuts for reset zoom and theme toggle
+# [v0.4.3] Add keyboard shortcuts help overlay
 
 ## Summary
-This PR adds keyboard shortcuts for reset zoom and theme toggle functionality, improving user experience with quick access to these features. Both shortcuts now display notification messages for better user feedback.
+This PR adds a keyboard shortcuts help overlay that displays when the `s` key is pressed, allowing users to quickly access information about all available keyboard shortcuts in the extension. The overlay can be displayed by pressing and holding the `s` key and hides when the key is released.
 
 ## Changes
 
 ### Added
-- Keyboard shortcut `r` to reset zoom level to 100%
-- Keyboard shortcut `t` to toggle between light and dark themes
-- `toggleTheme()` method to switch between light and dark themes
-- Message handlers for `resetZoom` and `toggleTheme` commands in webview
-- Notification messages:
-  - "Zoom: 100%" when pressing `r`
-  - "Theme: Light" or "Theme: Dark" when pressing `t`
-
-### Changed
-- Updated toolbar tooltips to display keyboard shortcuts:
-  - "Use Light Theme [t]" / "Use Dark Theme [t]"
-  - "Reset Zoom [r]"
-- Replaced refresh command with reset zoom on `r` key
-- Updated keyboard event handler in webview to support new shortcuts
-- Reset zoom now always resets to 100% instead of default zoom level
+- Keyboard shortcut `s` to display the help overlay
+- Help overlay component that displays all available keyboard shortcuts organized by categories:
+  - Navigation (arrow keys, Enter, Esc)
+  - Panels (h, l, f keys)
+  - Editing (c, q, e keys)
+  - View (zoom, theme, pin)
+  - Help (s key)
+- CSS styles for help overlay:
+  - Fixed position overlay with semi-transparent background
+  - Themed help content panel with scroll support
+  - Keyboard key styling with monospace font
+  - Responsive design with max-width and max-height constraints
+- JavaScript state management for help overlay visibility
+- `showHelp()` and `hideHelp()` functions for help overlay control
+- Keydown event handler for `s` key to show help overlay
+- Keyup event handler for `s` key to hide help overlay
 
 ### Documentation
-- Updated README.md with new keyboard shortcuts and accurate descriptions
-- Updated README-JA.md with new keyboard shortcuts (Japanese)
-- Updated CHANGELOG.md with v0.3.6 release notes
-- Removed "Refresh" feature from documentation
+- Updated README.md with help overlay feature in the features table
+- Updated README-JA.md with help overlay feature in Japanese
+- Updated CHANGELOG.md with v0.4.3 release notes
+- Version bumped to 0.4.3 in package.json
 
 ## Testing
 - [x] Compiled successfully
-- [ ] Manually tested reset zoom with `r` key (resets to 100% and shows message)
-- [ ] Manually tested theme toggle with `t` key (toggles theme and shows message)
-- [ ] Verified toolbar tooltips display correct shortcuts
+- [x] Manually tested help overlay displays when pressing `s` key
+- [x] Manually tested help overlay hides when releasing `s` key
+- [x] Verified help overlay displays all keyboard shortcuts correctly
+- [x] Verified help overlay respects light/dark theme colors
+- [x] Tested Esc key closes help overlay when open
 
 ## Version
-- Bumped version from 0.3.5 to 0.3.6
+- Bumped version from 0.4.2 to 0.4.3
+

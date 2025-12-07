@@ -10,6 +10,7 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 
 | Feature | Shortcut | Description |
 | --- | --- | --- |
+| Help | `s` | Display keyboard shortcuts help overlay; hold the key to keep the overlay visible |
 | Headings | `h` or Hover | Toggle headings panel or expand on hover; displays h1-h6 navigation in the file path header. Use arrow keys to navigate, Enter to select, Esc to close |
 | File list | `l` or Hover | Toggle file list panel or expand on hover; displays markdown files in the same directory for quick navigation. Use arrow keys to navigate, Enter to select, Esc to close |
 | Search | `f` | Shows search bar with case-sensitive option; navigate matches with Enter/Shift+Enter, close with Esc |
@@ -19,7 +20,7 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 | Light Theme<br>Dark Theme | `t` | Switch between light and dark theme for the preview |
 | Zoom In<br>Zoom Out | `+`<br>`-` | Zoom in/out the preview (displays current zoom level) |
 | Reset Zoom | `r` | Reset zoom level to 100% |
-| Navigate Previous<br>Navigate Next | `←`<br>`→` | Opens File list panel and highlights next/previous file; press Enter to navigate to the selected file |
+| Navigate Previous<br>Navigate Next | `←`<br>`→` | Navigate to previous/next Markdown file in the same directory |
 | Pin<br>Unpin | `p` | Freeze the preview on the currently displayed Markdown file or return to follow mode |
 | Edit | `e` | Open the previewed document in an editor tab |
 | File Path Display | Always visible | Shows the relative path from project root at the top of the preview |
@@ -52,7 +53,6 @@ Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window
 ## Tips & Known Limitations
 - The File List panel displays all Markdown files in the same directory as the current file, with the current file highlighted.
 - Press `l` to toggle the file list, or hover over "Files" in the header. Click any file to switch to it.
-- When using left/right arrow keys to navigate, the file list panel appears temporarily for 3 seconds.
 - The Headings panel automatically extracts h1-h6 headings from your Markdown document and provides clickable navigation.
 - The Headings panel is located in the file path header area at the top of the preview.
 - Hover over the Headings title to expand the navigation dropdown menu.
@@ -61,7 +61,7 @@ Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window
 - The File list panel only appears when there are 2 or more markdown files in the directory.
 - Click on a file name in the File list dropdown to switch preview to that file.
 - When the Headings or File list panel is open, use any arrow key (↑/↓/←/→) to navigate items, Enter to select, and Esc to close.
-- Pressing ←/→ arrow keys will show the File list panel and highlight the target file. Press Enter to confirm navigation.
+- Use left/right arrow keys (←/→) to navigate to the previous/next Markdown file in the same directory.
 - Mermaid diagrams load from the jsDelivr CDN; an offline environment will skip diagram rendering.
 - Images and links resolve using VS Code's workspace paths—ensure referenced files exist in reachable locations.
 - When no Markdown file is open, the preview automatically shows the workspace's README.md if available.
