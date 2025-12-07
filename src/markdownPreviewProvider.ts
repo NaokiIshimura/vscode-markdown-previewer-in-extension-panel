@@ -1684,6 +1684,110 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         .filelist-dropdown::-webkit-scrollbar-thumb:hover {
             background: var(--md-heading-border);
         }
+
+        /* Help Overlay Styles */
+        #help-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+            padding: 20px;
+        }
+
+        #help-overlay.show {
+            display: flex;
+        }
+
+        .help-content {
+            background-color: var(--file-path-background);
+            border: 1px solid var(--file-path-border);
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        body.theme-dark .help-content {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .help-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--md-foreground);
+            border-bottom: 2px solid var(--md-link);
+            padding-bottom: 12px;
+        }
+
+        .help-section {
+            margin-bottom: 20px;
+        }
+
+        .help-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .help-section-title {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: var(--md-link);
+            margin-bottom: 12px;
+        }
+
+        .help-item {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .help-key {
+            display: inline-block;
+            background-color: var(--md-code-background);
+            border: 1px solid var(--file-path-border);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--md-code-foreground);
+            min-width: 40px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .help-description {
+            color: var(--md-foreground);
+            font-size: 0.95em;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        .help-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .help-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .help-content::-webkit-scrollbar-thumb {
+            background: var(--md-quote-border);
+            border-radius: 4px;
+        }
+
+        .help-content::-webkit-scrollbar-thumb:hover {
+            background: var(--md-heading-border);
+        }
     </style>
     <script>
         const vscode = acquireVsCodeApi();
@@ -2493,7 +2597,37 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             initFilePathCopy();
         }
 
+        // Help overlay state management
+        let isHelpVisible = false;
+
+        function showHelp() {
+            const helpOverlay = document.getElementById('help-overlay');
+            if (helpOverlay) {
+                helpOverlay.classList.add('show');
+                isHelpVisible = true;
+            }
+        }
+
+        function hideHelp() {
+            const helpOverlay = document.getElementById('help-overlay');
+            if (helpOverlay) {
+                helpOverlay.classList.remove('show');
+                isHelpVisible = false;
+            }
+        }
+
         window.addEventListener('keydown', (event) => {
+            // Show help overlay when 's' key is pressed
+            if (event.key === 's' && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+                const searchInput = document.getElementById('search-input');
+                if (searchInput && document.activeElement === searchInput) {
+                    return;
+                }
+                event.preventDefault();
+                showHelp();
+                return;
+            }
+
             // 検索入力がフォーカスされている場合はショートカットキーをスキップ
             const searchInput = document.getElementById('search-input');
             if (searchInput && document.activeElement === searchInput) {
@@ -2532,7 +2666,11 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                     return;
                 }
             } else if (event.key === 'Escape') {
-                if (isFileListVisible()) {
+                if (isHelpVisible) {
+                    event.preventDefault();
+                    hideHelp();
+                    return;
+                } else if (isFileListVisible()) {
                     event.preventDefault();
                     hideFileList();
                     return;
@@ -2545,25 +2683,21 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
             if (event.key === 'ArrowRight') {
                 event.preventDefault();
-                // Show file list and select next file without navigating
+                // Navigate to next file directly
                 if (fileList.length > 1) {
-                    showFileList();
-                    fileListSelectedIndex = fileList.indexOf(currentFileName);
-                    if (fileListSelectedIndex < fileList.length - 1) {
-                        fileListSelectedIndex++;
+                    const currentIndex = fileList.indexOf(currentFileName);
+                    if (currentIndex < fileList.length - 1) {
+                        vscode.postMessage({ command: 'navigateNext' });
                     }
-                    updateFileListSelection();
                 }
             } else if (event.key === 'ArrowLeft') {
                 event.preventDefault();
-                // Show file list and select previous file without navigating
+                // Navigate to previous file directly
                 if (fileList.length > 1) {
-                    showFileList();
-                    fileListSelectedIndex = fileList.indexOf(currentFileName);
-                    if (fileListSelectedIndex > 0) {
-                        fileListSelectedIndex--;
+                    const currentIndex = fileList.indexOf(currentFileName);
+                    if (currentIndex > 0) {
+                        vscode.postMessage({ command: 'navigatePrevious' });
                     }
-                    updateFileListSelection();
                 }
             } else if (event.key === 'f') {
                 event.preventDefault();
@@ -2598,6 +2732,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === 'q') {
                 event.preventDefault();
                 copyAsQuote();
+            }
+        });
+
+        window.addEventListener('keyup', (event) => {
+            // Hide help overlay when 's' key is released
+            if (event.key === 's') {
+                hideHelp();
             }
         });
     </script>
@@ -2653,6 +2794,95 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     </div>
     <div id="file-list-dropdown" class="file-list-dropdown">
         <ul id="file-list" class="file-list"></ul>
+    </div>
+    <div id="help-overlay">
+        <div class="help-content">
+            <div class="help-title">Keyboard Shortcuts</div>
+            
+            <div class="help-section">
+                <div class="help-section-title">Navigation</div>
+                <div class="help-item">
+                    <span class="help-key">←→</span>
+                    <span class="help-description">Navigate between files</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-key">↑↓</span>
+                    <span class="help-description">Navigate in panels</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-key">Enter</span>
+                    <span class="help-description">Select item in active panel</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-key">Esc</span>
+                    <span class="help-description">Close panels or help</span>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-section-title">Panels</div>
+                <div class="help-item">
+                    <span class="help-key">h</span>
+                    <span class="help-description">Toggle headings panel</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-key">l</span>
+                    <span class="help-description">Toggle file list panel</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-key">f</span>
+                    <span class="help-description">Show search</span>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-section-title">Editing</div>
+                <div class="help-item">
+                    <span class="help-key">c</span>
+                    <span class="help-description">Copy selected text</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-key">q</span>
+                    <span class="help-description">Copy as quote</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-key">e</span>
+                    <span class="help-description">Edit in editor</span>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-section-title">View</div>
+                <div class="help-item">
+                    <span class="help-key">+</span>
+                    <span class="help-description">Zoom in</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-key">-</span>
+                    <span class="help-description">Zoom out</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-key">r</span>
+                    <span class="help-description">Reset zoom</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-key">t</span>
+                    <span class="help-description">Toggle theme</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-key">p</span>
+                    <span class="help-description">Toggle pin</span>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-section-title">Help</div>
+                <div class="help-item">
+                    <span class="help-key">s</span>
+                    <span class="help-description">Show this help (hold to display)</span>
+                </div>
+            </div>
+        </div>
     </div>
     ${convertedHtml}
 </body>
