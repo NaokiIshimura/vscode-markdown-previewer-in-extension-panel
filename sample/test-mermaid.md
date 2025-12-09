@@ -2,7 +2,7 @@
 
 This file is for testing Mermaid diagram rendering.
 
-## Flowchart
+## Flowchart (TD: Top-Down)
 
 ```mermaid
 graph TD
@@ -11,6 +11,18 @@ graph TD
     B -->|No| D[Process 2]
     C --> E[End]
     D --> E
+```
+
+## Flowchart (LR: Left-Right)
+
+```mermaid
+graph LR
+    A[company_id + user_id] --> B[generate_internal_session_token]
+    B --> C[session_token]
+    C --> D[grpc_ocean_v2_list_connected_services]
+    D --> E[connected_service_id]
+    E --> F[grpc_ocean_v2_fetch]
+    F --> G[明細データ]
 ```
 
 ## Sequence Diagram
