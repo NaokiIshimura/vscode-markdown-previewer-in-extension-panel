@@ -5,6 +5,30 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.7] - 2025-12-13
+
+### Added
+- Press `f` key as an alternative shortcut to open sidebar and show File list tab (same as `l` key)
+- Sidebar state persistence: sidebar remains visible when switching to different files
+- File list tab now auto-selects the current file when opened, making it easier to navigate relative to your position
+
+### Changed
+- Keyboard shortcuts reorganization for better usability
+  - Press `s` key to toggle sidebar visibility (previously `b`)
+  - Press `h` key to open sidebar and show Headings tab (previously toggled dropdown)
+  - Press `l` or `f` key to open sidebar and show File list tab (previously toggled dropdown)
+  - Press `Tab` key to switch between Headings and Files tabs when sidebar is open
+  - Use arrow keys (↑/↓) to navigate sidebar items, Enter to select, Esc to close
+  - Left/right arrow keys (←/→) now always navigate between files, even when sidebar is open
+  - Click items in the sidebar to navigate to headings or switch files
+  - Sidebar toggle button (☰) in the header toolbar
+
+### Removed
+- Keyboard shortcuts help overlay (previously `s` key)
+- Headings dropdown panel (replaced by sidebar Headings tab)
+- File list dropdown panel (replaced by sidebar File list tab)
+- Search feature (previously `f` key, now repurposed for File list)
+
 ## [0.4.6] - 2025-12-13
 
 ### Added

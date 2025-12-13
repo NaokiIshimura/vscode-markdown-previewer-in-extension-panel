@@ -10,10 +10,9 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 
 | Feature | Shortcut | Description |
 | --- | --- | --- |
-| Help | `s` | Display keyboard shortcuts help overlay; hold the key to keep the overlay visible |
-| Headings | `h` or Hover | Toggle headings panel or expand on hover; displays h1-h6 navigation in the file path header. Use arrow keys to navigate, Enter to select, Esc to close |
-| File list | `l` or Hover | Toggle file list panel or expand on hover; displays markdown files in the same directory for quick navigation. Use arrow keys to navigate, Enter to select, Esc to close |
-| Search | `f` | Shows search bar with case-sensitive option; navigate matches with Enter/Shift+Enter, close with Esc |
+| Sidebar | `s` | Toggle sidebar panel with Headings and Files tabs; use Tab to switch between tabs, ↑/↓ to navigate items, Enter to select, Esc to close |
+| Headings | `h` | Open sidebar and show Headings tab; displays h1-h6 navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
+| File list | `l` or `f` | Open sidebar and show File list tab; displays markdown files in the same directory for quick navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
 | Copy | `c` | Copy selected text to clipboard; shows VS Code notification message |
 | File Path Copy | Click path | Copy the file path to clipboard by clicking the file path; shows VS Code notification message |
 | Copy as Quote | `q` | When text is selected, press `q` to copy selected text with `> ` prefix on each line for quoting in Markdown |
@@ -54,21 +53,17 @@ npm run watch    # incremental build while developing
 Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window.
 
 ## Tips & Known Limitations
-- The File List panel displays all Markdown files in the same directory as the current file, with the current file highlighted.
-- Press `l` to toggle the file list, or hover over "Files" in the header. Click any file to switch to it.
-- The Headings panel automatically extracts h1-h6 headings from your Markdown document and provides clickable navigation.
-- The Headings panel is located in the file path header area at the top of the preview.
-- Hover over the Headings title to expand the navigation dropdown menu.
-- Clicking on a heading in the dropdown smoothly scrolls to that section in the preview.
-- The File list panel displays other markdown files in the same directory for quick navigation.
-- The File list panel only appears when there are 2 or more markdown files in the directory.
-- Click on a file name in the File list dropdown to switch preview to that file.
-- When the Headings or File list panel is open, use any arrow key (↑/↓/←/→) to navigate items, Enter to select, and Esc to close.
-- Use left/right arrow keys (←/→) to navigate to the previous/next Markdown file in the same directory.
+- **Sidebar**: Press `s` to toggle a sidebar panel that combines Headings and Files in a tabbed interface. Use Tab to switch between tabs, ↑/↓ to navigate items, Enter to select, and Esc to close.
+- **Headings**: Press `h` to open the sidebar and display the Headings tab. The sidebar automatically extracts h1-h6 headings from your Markdown document and provides clickable navigation.
+- **File list**: Press `l` or `f` to open the sidebar and display the File list tab. The sidebar displays all Markdown files in the same directory as the current file, with the current file highlighted. Click any file to switch to it.
+- The File list tab only appears when there are 2 or more markdown files in the directory.
+- When the sidebar is open, use ↑/↓ to navigate items, Enter to select, and Esc to close.
+- Left/right arrow keys (←/→) always navigate to the previous/next Markdown file, even when the sidebar is open.
 - Mermaid diagrams load from the jsDelivr CDN; an offline environment will skip diagram rendering.
 - Images and links resolve using VS Code's workspace paths—ensure referenced files exist in reachable locations.
 - When no Markdown file is open, the preview automatically shows the workspace's README.md if available.
 - The preview persists even when switching to non-Markdown files, allowing you to keep your documentation visible while working on code.
+- The sidebar remains visible when switching to a different file, preserving your navigation context.
 - When switching to a different Markdown file, the scroll position automatically resets to the top for a fresh viewing experience.
 - The Copy as Quote feature is useful for quoting content in issues, pull requests, or other Markdown documents.
 
