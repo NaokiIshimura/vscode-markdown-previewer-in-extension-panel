@@ -5,6 +5,15 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.6] - 2025-12-13
+
+### Added
+- Mermaid diagram copy and save features
+  - Copy button: Copies Mermaid source code as Markdown code block to clipboard
+  - Save button: Saves Mermaid diagram as PNG image (2x resolution for clarity) via VS Code save dialog
+  - Buttons appear on hover over Mermaid diagrams
+  - Provides visual feedback with button text changes (Copied!/Saving.../Failed)
+
 ## [0.4.5] - 2025-12-13
 
 ### Added

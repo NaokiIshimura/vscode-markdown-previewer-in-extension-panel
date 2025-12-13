@@ -177,6 +177,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 case 'navigateToFile':
                     void this.navigateToFileByName(message.fileName);
                     break;
+                case 'saveMermaidPng':
+                    void this.saveMermaidPng(message.data);
+                    break;
             }
         });
 
@@ -697,7 +700,18 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         // Match code blocks with language-mermaid class (may have additional classes like hljs)
         return html.replace(
             /<pre><code class="[^"]*language-mermaid[^"]*">([\s\S]*?)<\/code><\/pre>/g,
-            '<div class="mermaid">$1</div>'
+            (_match, code) => {
+                // Decode HTML entities for the data attribute
+                const decodedCode = code
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&amp;/g, '&')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'");
+                // Encode for safe HTML attribute storage
+                const encodedCode = Buffer.from(decodedCode).toString('base64');
+                return `<div class="mermaid-wrapper"><div class="mermaid" data-mermaid-source="${encodedCode}">${code}</div><div class="mermaid-toolbar"><button class="mermaid-copy-button" title="Copy Mermaid code">Copy</button><button class="mermaid-save-button" title="Save as PNG">Save</button></div></div>`;
+            }
         );
     }
 
@@ -745,6 +759,28 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         } catch (error) {
             console.warn('Failed to open document for editing:', error);
             void vscode.window.showErrorMessage('Unable to open the Markdown document for editing.');
+        }
+    }
+
+    public async saveMermaidPng(base64Data: string): Promise<void> {
+        try {
+            const homeDir = process.env.HOME || process.env.USERPROFILE || '';
+            const downloadsPath = path.join(homeDir, 'Downloads', 'mermaid-diagram.png');
+            const uri = await vscode.window.showSaveDialog({
+                defaultUri: vscode.Uri.file(downloadsPath),
+                filters: {
+                    'PNG Image': ['png']
+                }
+            });
+
+            if (uri) {
+                const data = Buffer.from(base64Data, 'base64');
+                await vscode.workspace.fs.writeFile(uri, data);
+                void vscode.window.showInformationMessage(`Saved: ${path.basename(uri.fsPath)}`);
+            }
+        } catch (error) {
+            console.warn('Failed to save Mermaid PNG:', error);
+            void vscode.window.showErrorMessage('Failed to save the diagram.');
         }
     }
 
@@ -866,7 +902,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https: http: data:; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} https://cdn.jsdelivr.net 'unsafe-inline'; font-src ${webview.cspSource} data:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https: http: data: blob:; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} https://cdn.jsdelivr.net 'unsafe-inline'; font-src ${webview.cspSource} data:;">
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <title>Markdown Preview</title>
     <style>
@@ -1128,6 +1164,49 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         .copy-code-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Mermaid diagram wrapper and toolbar */
+        .mermaid-wrapper {
+            position: relative;
+            margin: 16px 0;
+        }
+
+        .mermaid-toolbar {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .mermaid-wrapper:hover .mermaid-toolbar {
+            opacity: 1;
+        }
+
+        .mermaid-copy-button,
+        .mermaid-save-button {
+            padding: 4px 8px;
+            font-size: 12px;
+            background-color: var(--copy-button-background);
+            color: var(--copy-button-foreground);
+            border: 1px solid var(--copy-button-border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            box-shadow: 0 2px 4px var(--copy-button-shadow);
+        }
+
+        .mermaid-copy-button:hover,
+        .mermaid-save-button:hover {
+            background-color: var(--copy-button-background-hover);
+        }
+
+        .mermaid-copy-button:active,
+        .mermaid-save-button:active {
             transform: scale(0.95);
         }
 
@@ -2212,6 +2291,180 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             initHeadings();
             initFileList();
             wrapCodeBlocks();
+            initMermaidButtons();
+        }
+
+        function initMermaidButtons() {
+            // Copy buttons
+            document.querySelectorAll('.mermaid-copy-button').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const wrapper = button.closest('.mermaid-wrapper');
+                    const mermaidDiv = wrapper?.querySelector('.mermaid');
+                    const encodedSource = mermaidDiv?.getAttribute('data-mermaid-source');
+
+                    if (!encodedSource) {
+                        button.textContent = 'Failed';
+                        setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+                        return;
+                    }
+
+                    try {
+                        const source = atob(encodedSource);
+                        const markdown = '\`\`\`mermaid\\n' + source + '\\n\`\`\`';
+                        await navigator.clipboard.writeText(markdown);
+                        button.textContent = 'Copied!';
+                        setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+                    } catch (err) {
+                        button.textContent = 'Failed';
+                        setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+                    }
+                });
+            });
+
+            // Save buttons
+            document.querySelectorAll('.mermaid-save-button').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const wrapper = button.closest('.mermaid-wrapper');
+                    const mermaidDiv = wrapper?.querySelector('.mermaid');
+                    const svg = mermaidDiv?.querySelector('svg');
+
+                    if (!svg) {
+                        button.textContent = 'Failed';
+                        setTimeout(() => { button.textContent = 'Save'; }, 2000);
+                        return;
+                    }
+
+                    try {
+                        button.textContent = 'Saving...';
+
+                        // Detect current theme (dark or light)
+                        const isDarkMode = document.body.classList.contains('theme-dark');
+                        const bgColor = isDarkMode ? '#1e1e1e' : '#ffffff';
+                        const textColor = isDarkMode ? '#ffffff' : '#000000';
+
+                        // Get SVG dimensions from viewBox or bounding rect
+                        const viewBox = svg.getAttribute('viewBox');
+                        let width, height;
+                        if (viewBox) {
+                            const parts = viewBox.split(' ').map(Number);
+                            width = parts[2] || 800;
+                            height = parts[3] || 600;
+                        } else {
+                            const svgRect = svg.getBoundingClientRect();
+                            width = Math.ceil(svgRect.width) || 800;
+                            height = Math.ceil(svgRect.height) || 600;
+                        }
+
+                        // Clone SVG and prepare for export
+                        const svgClone = svg.cloneNode(true);
+                        svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                        svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+                        svgClone.setAttribute('width', width.toString());
+                        svgClone.setAttribute('height', height.toString());
+
+                        // Remove problematic attributes
+                        svgClone.removeAttribute('style');
+
+                        // Convert foreignObject elements to SVG text elements
+                        // foreignObject causes tainted canvas issues
+                        svgClone.querySelectorAll('foreignObject').forEach(fo => {
+                            const foX = fo.getAttribute('x') || '0';
+                            const foY = fo.getAttribute('y') || '0';
+                            const foWidth = parseFloat(fo.getAttribute('width') || '100');
+                            const foHeight = parseFloat(fo.getAttribute('height') || '50');
+
+                            // Get text content from inside foreignObject
+                            const textContent = fo.textContent?.trim() || '';
+
+                            if (textContent) {
+                                // Create SVG text element to replace foreignObject
+                                const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                                textEl.setAttribute('x', (parseFloat(foX) + foWidth / 2).toString());
+                                textEl.setAttribute('y', (parseFloat(foY) + foHeight / 2).toString());
+                                textEl.setAttribute('text-anchor', 'middle');
+                                textEl.setAttribute('dominant-baseline', 'middle');
+                                textEl.setAttribute('fill', textColor);
+                                textEl.setAttribute('font-family', 'arial, sans-serif');
+                                textEl.setAttribute('font-size', '14');
+                                textEl.textContent = textContent;
+
+                                fo.parentNode?.replaceChild(textEl, fo);
+                            } else {
+                                fo.remove();
+                            }
+                        });
+
+                        // Force text elements to use theme-appropriate color
+                        svgClone.querySelectorAll('text, tspan').forEach(el => {
+                            el.setAttribute('fill', textColor);
+                        });
+
+                        // Add background at the beginning
+                        const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        bgRect.setAttribute('x', '0');
+                        bgRect.setAttribute('y', '0');
+                        bgRect.setAttribute('width', width.toString());
+                        bgRect.setAttribute('height', height.toString());
+                        bgRect.setAttribute('fill', bgColor);
+
+                        // Find the first non-style, non-defs element to insert before
+                        let insertBefore = null;
+                        for (const child of svgClone.children) {
+                            const tag = child.tagName.toLowerCase();
+                            if (tag !== 'style' && tag !== 'defs') {
+                                insertBefore = child;
+                                break;
+                            }
+                        }
+                        if (insertBefore) {
+                            svgClone.insertBefore(bgRect, insertBefore);
+                        } else {
+                            svgClone.appendChild(bgRect);
+                        }
+
+                        // Serialize SVG to string
+                        const svgData = new XMLSerializer().serializeToString(svgClone);
+
+                        // Create canvas and draw SVG
+                        const canvas = document.createElement('canvas');
+                        const scale = 2; // Higher resolution
+                        canvas.width = width * scale;
+                        canvas.height = height * scale;
+                        const ctx = canvas.getContext('2d');
+                        ctx.scale(scale, scale);
+                        ctx.fillStyle = bgColor;
+                        ctx.fillRect(0, 0, width, height);
+
+                        // Create blob URL for the SVG
+                        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                        const url = URL.createObjectURL(svgBlob);
+
+                        const img = new Image();
+                        img.onload = () => {
+                            ctx.drawImage(img, 0, 0, width, height);
+                            URL.revokeObjectURL(url);
+
+                            // Convert to PNG and send to extension for saving
+                            const pngDataUrl = canvas.toDataURL('image/png');
+                            const base64Data = pngDataUrl.replace(/^data:image\\/png;base64,/, '');
+                            vscode.postMessage({ command: 'saveMermaidPng', data: base64Data });
+                            setTimeout(() => { button.textContent = 'Save'; }, 2000);
+                        };
+                        img.onerror = () => {
+                            URL.revokeObjectURL(url);
+                            button.textContent = 'Failed';
+                            setTimeout(() => { button.textContent = 'Save'; }, 2000);
+                        };
+                        img.src = url;
+                    } catch (err) {
+                        console.error('Save error:', err);
+                        button.textContent = 'Failed';
+                        setTimeout(() => { button.textContent = 'Save'; }, 2000);
+                    }
+                });
+            });
         }
 
         // Search functionality
