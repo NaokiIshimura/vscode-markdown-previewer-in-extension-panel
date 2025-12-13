@@ -41,7 +41,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     private readonly _zoomStep = 10;
     private _fileListCache: { dirUri: string; files: string[] } | undefined;
     private _sidebarVisible = false;
-    private _sidebarActiveTab: 'headings' | 'files' = 'headings';
+    private _sidebarActiveTab: 'headings' | 'files' | 'help' = 'headings';
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -1744,6 +1744,74 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             opacity: 1;
             color: var(--md-link);
         }
+
+        /* Help Panel Styles */
+        .help-content {
+            padding: 8px;
+            font-size: 0.85em;
+            line-height: 1.6;
+        }
+
+        .help-content h3 {
+            font-size: 1em;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            color: var(--md-foreground);
+            border-bottom: 1px solid var(--file-path-border);
+            padding-bottom: 4px;
+        }
+
+        .help-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .help-feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0;
+        }
+
+        .help-feature-list li {
+            margin: 6px 0;
+            padding-left: 8px;
+        }
+
+        .help-feature-list strong {
+            color: var(--md-link);
+            font-weight: 600;
+        }
+
+        .help-shortcuts-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 0.9em;
+        }
+
+        .help-shortcuts-table th,
+        .help-shortcuts-table td {
+            padding: 6px 8px;
+            border: 1px solid var(--file-path-border);
+            text-align: left;
+        }
+
+        .help-shortcuts-table th {
+            background-color: var(--md-code-background);
+            font-weight: 600;
+            color: var(--md-foreground);
+        }
+
+        .help-shortcuts-table td:first-child {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-weight: 600;
+            color: var(--md-link);
+        }
+
+        .help-shortcuts-table code {
+            background-color: transparent;
+            padding: 0;
+            font-size: 1em;
+        }
     </style>
     <script>
         const vscode = acquireVsCodeApi();
@@ -1846,19 +1914,29 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
             const headingsTab = document.getElementById('sidebar-tab-headings');
             const filesTab = document.getElementById('sidebar-tab-files');
+            const helpTab = document.getElementById('sidebar-tab-help');
             const headingsPanel = document.getElementById('sidebar-panel-headings');
             const filesPanel = document.getElementById('sidebar-panel-files');
+            const helpPanel = document.getElementById('sidebar-panel-help');
 
+            // Remove active class from all tabs and panels
+            if (headingsTab) headingsTab.classList.remove('active');
+            if (filesTab) filesTab.classList.remove('active');
+            if (helpTab) helpTab.classList.remove('active');
+            if (headingsPanel) headingsPanel.classList.remove('active');
+            if (filesPanel) filesPanel.classList.remove('active');
+            if (helpPanel) helpPanel.classList.remove('active');
+
+            // Add active class to selected tab and panel
             if (tab === 'headings') {
                 if (headingsTab) headingsTab.classList.add('active');
-                if (filesTab) filesTab.classList.remove('active');
                 if (headingsPanel) headingsPanel.classList.add('active');
-                if (filesPanel) filesPanel.classList.remove('active');
-            } else {
-                if (headingsTab) headingsTab.classList.remove('active');
+            } else if (tab === 'files') {
                 if (filesTab) filesTab.classList.add('active');
-                if (headingsPanel) headingsPanel.classList.remove('active');
                 if (filesPanel) filesPanel.classList.add('active');
+            } else if (tab === 'help') {
+                if (helpTab) helpTab.classList.add('active');
+                if (helpPanel) helpPanel.classList.add('active');
             }
             notifySidebarStateChanged();
         }
@@ -2682,6 +2760,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 // Switch sidebar tabs with Tab key
                 if (sidebarActiveTab === 'headings') {
                     switchSidebarTab('files');
+                } else if (sidebarActiveTab === 'files') {
+                    switchSidebarTab('help');
                 } else {
                     switchSidebarTab('headings');
                 }
@@ -2787,6 +2867,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             <div class="sidebar-tabs">
                 <button id="sidebar-tab-headings" class="sidebar-tab active" onclick="switchSidebarTab('headings')">Headings</button>
                 <button id="sidebar-tab-files" class="sidebar-tab" onclick="switchSidebarTab('files')">Files</button>
+                <button id="sidebar-tab-help" class="sidebar-tab" onclick="switchSidebarTab('help')">Help</button>
             </div>
             <div class="sidebar-content">
                 <div id="sidebar-panel-headings" class="sidebar-panel active">
@@ -2794,6 +2875,47 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 </div>
                 <div id="sidebar-panel-files" class="sidebar-panel">
                     <ul id="sidebar-files-list" class="sidebar-list"></ul>
+                </div>
+                <div id="sidebar-panel-help" class="sidebar-panel">
+                    <div class="help-content">
+                        <h3>Features</h3>
+                        <ul class="help-feature-list">
+                            <li><strong>Pin/Unpin:</strong> Lock the preview to a specific file</li>
+                            <li><strong>Search:</strong> Find text within the current markdown file</li>
+                            <li><strong>Theme Toggle:</strong> Switch between light and dark themes</li>
+                            <li><strong>Zoom:</strong> Adjust preview text size (50-200%)</li>
+                            <li><strong>Edit:</strong> Open the previewed file in editor</li>
+                            <li><strong>Refresh:</strong> Reload the preview content</li>
+                            <li><strong>Open Settings:</strong> Access extension configuration</li>
+                        </ul>
+                        
+                        <h3>Keyboard Shortcuts</h3>
+                        <table class="help-shortcuts-table">
+                            <thead>
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>h</code></td><td>Show sidebar (Headings tab)</td></tr>
+                                <tr><td><code>f</code></td><td>Show sidebar (Files tab)</td></tr>
+                                <tr><td><code>s</code></td><td>Toggle sidebar</td></tr>
+                                <tr><td><code>Tab</code></td><td>Switch between sidebar tabs</td></tr>
+                                <tr><td><code>↑/↓</code></td><td>Navigate sidebar items</td></tr>
+                                <tr><td><code>Enter</code></td><td>Select sidebar item</td></tr>
+                                <tr><td><code>Esc</code></td><td>Close sidebar</td></tr>
+                                <tr><td><code>←/→</code></td><td>Previous/Next file</td></tr>
+                                <tr><td><code>p</code></td><td>Toggle pin</td></tr>
+                                <tr><td><code>e</code></td><td>Edit in editor</td></tr>
+                                <tr><td><code>t</code></td><td>Toggle theme</td></tr>
+                                <tr><td><code>+/-</code></td><td>Zoom in/out</td></tr>
+                                <tr><td><code>r</code></td><td>Reset zoom</td></tr>
+                                <tr><td><code>c</code></td><td>Copy selection</td></tr>
+                                <tr><td><code>q</code></td><td>Copy selection as quote</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </aside>

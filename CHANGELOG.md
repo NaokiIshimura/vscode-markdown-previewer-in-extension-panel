@@ -5,6 +5,15 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.8] - 2025-12-13
+
+### Added
+- Help tab in the sidebar providing quick reference for all features and keyboard shortcuts
+  - Comprehensive list of features with descriptions
+  - Complete keyboard shortcuts reference table
+  - Accessible via Tab key when sidebar is open to cycle through Headings, Files, and Help tabs
+  - Styled with theme-aware colors for better readability
+
 ## [0.4.7] - 2025-12-13
 
 ### Added
