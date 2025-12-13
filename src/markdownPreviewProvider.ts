@@ -40,6 +40,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     private readonly _maxZoom = 200;
     private readonly _zoomStep = 10;
     private _fileListCache: { dirUri: string; files: string[] } | undefined;
+    private _sidebarVisible = false;
+    private _sidebarActiveTab: 'headings' | 'files' = 'headings';
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -179,6 +181,10 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                     break;
                 case 'saveMermaidPng':
                     void this.saveMermaidPng(message.data);
+                    break;
+                case 'sidebarStateChanged':
+                    this._sidebarVisible = message.visible;
+                    this._sidebarActiveTab = message.activeTab;
                     break;
             }
         });
@@ -897,6 +903,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const headingsJson = JSON.stringify(headings);
         const fileListJson = JSON.stringify(fileList);
         const currentFileNameJson = JSON.stringify(currentFileName);
+        const sidebarVisibleJson = JSON.stringify(this._sidebarVisible);
+        const sidebarActiveTabJson = JSON.stringify(this._sidebarActiveTab);
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1320,227 +1328,10 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             opacity: 1;
         }
 
-        .headings-container {
-            position: relative;
-            background: transparent;
-            border: none;
-            padding: 0;
-        }
-
-        .headings-header {
-            margin: 0;
-            padding: 0;
-            border: none;
-            cursor: pointer;
-        }
-
-        .headings-title {
-            font-weight: bold;
-            font-size: 0.9em;
-            color: var(--md-foreground);
-        }
-
-        .headings-list-dropdown {
-            position: fixed;
-            top: 45px;
-            right: 16px;
-            max-width: 250px;
-            max-height: calc(100vh - 60px);
-            overflow-y: auto;
-            background-color: var(--file-path-background);
-            border: 1px solid var(--file-path-border);
-            border-radius: 6px;
-            padding: 12px;
-            z-index: 10000;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            display: none;
-        }
-
-        .headings-list-dropdown.show {
-            display: block;
-        }
-
-        body.theme-dark .headings-list-dropdown {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .headings-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .headings-item {
-            margin: 4px 0;
-        }
-
-        .headings-link {
-            display: block;
-            color: var(--md-link);
-            text-decoration: none;
-            padding: 4px 8px;
-            border-radius: 3px;
-            font-size: 0.85em;
-            line-height: 1.4;
-            cursor: pointer;
-        }
-
-        .headings-link:hover {
-            background-color: var(--md-code-background);
-        }
-
-        .headings-link.selected {
-            background-color: var(--md-link);
-            color: white;
-        }
-
-        .headings-item.level-1 .headings-link {
-            padding-left: 8px;
-            font-weight: 600;
-        }
-
-        .headings-item.level-2 .headings-link {
-            padding-left: 16px;
-        }
-
-        .headings-item.level-3 .headings-link {
-            padding-left: 24px;
-        }
-
-        .headings-item.level-4 .headings-link {
-            padding-left: 32px;
-        }
-
-        .headings-item.level-5 .headings-link {
-            padding-left: 40px;
-        }
-
-        .headings-item.level-6 .headings-link {
-            padding-left: 48px;
-        }
-
-        .headings-list-dropdown::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .headings-list-dropdown::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .headings-list-dropdown::-webkit-scrollbar-thumb {
-            background: var(--md-quote-border);
-            border-radius: 4px;
-        }
-
-        .headings-list-dropdown::-webkit-scrollbar-thumb:hover {
-            background: var(--md-heading-border);
-        }
-
         .header-panels {
             display: flex;
             align-items: center;
             gap: 16px;
-        }
-
-        .file-list-container {
-            position: relative;
-            background: transparent;
-            border: none;
-            padding: 0;
-        }
-
-        .file-list-header {
-            margin: 0;
-            padding: 0;
-            border: none;
-            cursor: pointer;
-        }
-
-        .file-list-title {
-            font-weight: bold;
-            font-size: 0.9em;
-            color: var(--md-foreground);
-        }
-
-        .file-list-dropdown {
-            position: fixed;
-            top: 45px;
-            right: 16px;
-            max-width: 300px;
-            max-height: calc(100vh - 60px);
-            overflow-y: auto;
-            background-color: var(--file-path-background);
-            border: 1px solid var(--file-path-border);
-            border-radius: 6px;
-            padding: 12px;
-            z-index: 10000;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            display: none;
-        }
-
-        .file-list-dropdown.show {
-            display: block;
-        }
-
-        body.theme-dark .file-list-dropdown {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .file-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .file-list-item {
-            margin: 4px 0;
-        }
-
-        .file-list-link {
-            display: block;
-            color: var(--md-link);
-            text-decoration: none;
-            padding: 4px 8px;
-            border-radius: 3px;
-            font-size: 0.85em;
-            line-height: 1.4;
-            cursor: pointer;
-        }
-
-        .file-list-link:hover {
-            background-color: var(--md-code-background);
-        }
-
-        .file-list-link.current {
-            font-weight: 600;
-            background-color: var(--md-code-background);
-        }
-
-        .file-list-link.selected {
-            background-color: var(--md-link);
-            color: white;
-        }
-
-        .file-list-link.selected.current {
-            background-color: var(--md-link);
-            color: white;
-        }
-
-        .file-list-dropdown::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .file-list-dropdown::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .file-list-dropdown::-webkit-scrollbar-thumb {
-            background: var(--md-quote-border);
-            border-radius: 4px;
-        }
-
-        .file-list-dropdown::-webkit-scrollbar-thumb:hover {
-            background: var(--md-heading-border);
         }
 
         .file-path-header {
@@ -1770,108 +1561,188 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             background: var(--md-heading-border);
         }
 
-        /* Help Overlay Styles */
-        #help-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10001;
-            padding: 20px;
-        }
-
-        #help-overlay.show {
+        /* Sidebar Styles */
+        .main-container {
             display: flex;
+            flex-direction: row;
+            min-height: calc(100vh - 60px);
         }
 
-        .help-content {
+        .preview-content {
+            flex: 1;
+            min-width: 0;
+            overflow-x: auto;
+        }
+
+        .sidebar {
+            width: 220px;
+            min-width: 220px;
+            max-width: 220px;
             background-color: var(--file-path-background);
-            border: 1px solid var(--file-path-border);
-            border-radius: 8px;
-            padding: 24px;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-left: 1px solid var(--file-path-border);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            position: sticky;
+            top: 45px;
+            height: calc(100vh - 60px);
+            margin-right: -16px;
+            margin-top: -16px;
+            margin-bottom: -16px;
         }
 
-        body.theme-dark .help-content {
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .help-title {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: var(--md-foreground);
-            border-bottom: 2px solid var(--md-link);
-            padding-bottom: 12px;
-        }
-
-        .help-section {
-            margin-bottom: 20px;
-        }
-
-        .help-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .help-section-title {
-            font-weight: 600;
-            font-size: 1.1em;
-            color: var(--md-link);
-            margin-bottom: 12px;
-        }
-
-        .help-item {
+        .sidebar.show {
             display: flex;
-            margin-bottom: 10px;
-            align-items: flex-start;
-            gap: 12px;
         }
 
-        .help-key {
-            display: inline-block;
-            background-color: var(--md-code-background);
-            border: 1px solid var(--file-path-border);
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-            font-size: 0.9em;
-            font-weight: 600;
-            color: var(--md-code-foreground);
-            min-width: 40px;
-            text-align: center;
-            flex-shrink: 0;
+        .sidebar-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--file-path-border);
+            background-color: var(--md-background);
         }
 
-        .help-description {
+        .sidebar-tab {
+            flex: 1;
+            padding: 8px 12px;
+            background: none;
+            border: none;
             color: var(--md-foreground);
-            font-size: 0.95em;
-            line-height: 1.5;
-            flex-grow: 1;
+            font-size: 0.85em;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s, background-color 0.2s;
         }
 
-        .help-content::-webkit-scrollbar {
+        .sidebar-tab:hover {
+            opacity: 0.8;
+            background-color: var(--md-code-background);
+        }
+
+        .sidebar-tab.active {
+            opacity: 1;
+            font-weight: 600;
+            border-bottom: 2px solid var(--md-link);
+            margin-bottom: -1px;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .sidebar-panel {
+            display: none;
+        }
+
+        .sidebar-panel.active {
+            display: block;
+        }
+
+        .sidebar-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-list-item {
+            margin: 2px 0;
+        }
+
+        .sidebar-list-link {
+            display: block;
+            color: var(--md-foreground);
+            text-decoration: none;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            line-height: 1.4;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-list-link:hover {
+            background-color: var(--md-code-background);
+        }
+
+        .sidebar-list-item.current .sidebar-list-link {
+            background-color: var(--md-link);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .sidebar-list-item.selected .sidebar-list-link {
+            outline: 2px solid var(--md-link);
+            outline-offset: -2px;
+        }
+
+        .sidebar-list-item.selected:not(.current) .sidebar-list-link {
+            background-color: var(--md-code-background);
+        }
+
+        /* Sidebar headings indentation */
+        .sidebar-list-item.level-1 .sidebar-list-link {
+            padding-left: 8px;
+            font-weight: 600;
+        }
+
+        .sidebar-list-item.level-2 .sidebar-list-link {
+            padding-left: 16px;
+        }
+
+        .sidebar-list-item.level-3 .sidebar-list-link {
+            padding-left: 24px;
+        }
+
+        .sidebar-list-item.level-4 .sidebar-list-link {
+            padding-left: 32px;
+        }
+
+        .sidebar-list-item.level-5 .sidebar-list-link {
+            padding-left: 40px;
+        }
+
+        .sidebar-list-item.level-6 .sidebar-list-link {
+            padding-left: 48px;
+        }
+
+        .sidebar-content::-webkit-scrollbar {
             width: 8px;
         }
 
-        .help-content::-webkit-scrollbar-track {
+        .sidebar-content::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        .help-content::-webkit-scrollbar-thumb {
+        .sidebar-content::-webkit-scrollbar-thumb {
             background: var(--md-quote-border);
             border-radius: 4px;
         }
 
-        .help-content::-webkit-scrollbar-thumb:hover {
+        .sidebar-content::-webkit-scrollbar-thumb:hover {
             background: var(--md-heading-border);
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: var(--md-foreground);
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 0.9em;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .sidebar-toggle:hover {
+            opacity: 1;
+        }
+
+        .sidebar-toggle.active {
+            opacity: 1;
+            color: var(--md-link);
         }
     </style>
     <script>
@@ -1899,344 +1770,240 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const fileList = ${fileListJson};
         const currentFileName = ${currentFileNameJson};
 
-        // Headings panel state management
-        let headingsManuallyVisible = false;
+        // Sidebar state management
+        let sidebarVisible = ${sidebarVisibleJson};
+        let sidebarActiveTab = ${sidebarActiveTabJson};
+        let sidebarSelectedIndex = -1;
 
-        // File list panel state management
-        let fileListManuallyVisible = false;
-        let fileListSelectedIndex = -1;
-
-        // Headings panel state management for keyboard navigation
-        let headingsSelectedIndex = -1;
-
-        function toggleHeadings() {
-            const headingsListDropdown = document.getElementById('headings-list-dropdown');
-            if (!headingsListDropdown) return;
-
-            headingsManuallyVisible = !headingsManuallyVisible;
-
-            if (headingsManuallyVisible) {
-                headingsListDropdown.classList.add('show');
-            } else {
-                headingsListDropdown.classList.remove('show');
-            }
-        }
-
-        function showHeadings() {
-            const headingsListDropdown = document.getElementById('headings-list-dropdown');
-            if (!headingsListDropdown) return;
-
-            headingsManuallyVisible = true;
-            headingsListDropdown.classList.add('show');
-        }
-
-        function hideHeadings() {
-            const headingsListDropdown = document.getElementById('headings-list-dropdown');
-            if (!headingsListDropdown) return;
-
-            headingsManuallyVisible = false;
-            headingsSelectedIndex = -1;
-            updateHeadingsSelection();
-            headingsListDropdown.classList.remove('show');
-        }
-
-        function isHeadingsVisible() {
-            const headingsListDropdown = document.getElementById('headings-list-dropdown');
-            return headingsListDropdown && headingsListDropdown.classList.contains('show');
-        }
-
-        function updateHeadingsSelection() {
-            const headingsList = document.getElementById('headings-list');
-            if (!headingsList) return;
-
-            const items = headingsList.querySelectorAll('.headings-link');
-            items.forEach((item, index) => {
-                if (index === headingsSelectedIndex) {
-                    item.classList.add('selected');
-                } else {
-                    item.classList.remove('selected');
-                }
+        function notifySidebarStateChanged() {
+            vscode.postMessage({
+                command: 'sidebarStateChanged',
+                visible: sidebarVisible,
+                activeTab: sidebarActiveTab
             });
-
-            // Scroll selected item into view
-            if (headingsSelectedIndex >= 0 && headingsSelectedIndex < items.length) {
-                items[headingsSelectedIndex].scrollIntoView({ block: 'nearest' });
-            }
         }
 
-        function navigateHeadingsUp() {
-            if (headings.length === 0) return;
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            if (!sidebar) return;
 
-            if (headingsSelectedIndex <= 0) {
-                headingsSelectedIndex = headings.length - 1;
+            sidebarVisible = !sidebarVisible;
+            if (sidebarVisible) {
+                sidebar.classList.add('show');
+                if (sidebarToggle) sidebarToggle.classList.add('active');
+                initSidebarContent();
             } else {
-                headingsSelectedIndex--;
+                sidebar.classList.remove('show');
+                if (sidebarToggle) sidebarToggle.classList.remove('active');
+                sidebarSelectedIndex = -1;
+                updateSidebarSelection();
             }
-            updateHeadingsSelection();
+            notifySidebarStateChanged();
         }
 
-        function navigateHeadingsDown() {
-            if (headings.length === 0) return;
+        function showSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            if (!sidebar) return;
 
-            if (headingsSelectedIndex >= headings.length - 1) {
-                headingsSelectedIndex = 0;
+            sidebarVisible = true;
+            sidebar.classList.add('show');
+            if (sidebarToggle) sidebarToggle.classList.add('active');
+            initSidebarContent();
+            notifySidebarStateChanged();
+        }
+
+        function hideSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            if (!sidebar) return;
+
+            sidebarVisible = false;
+            sidebar.classList.remove('show');
+            if (sidebarToggle) sidebarToggle.classList.remove('active');
+            sidebarSelectedIndex = -1;
+            updateSidebarSelection();
+            notifySidebarStateChanged();
+        }
+
+        function isSidebarVisible() {
+            const sidebar = document.getElementById('sidebar');
+            return sidebar && sidebar.classList.contains('show');
+        }
+
+        function switchSidebarTab(tab) {
+            sidebarActiveTab = tab;
+            // Set default selection based on tab
+            if (tab === 'files') {
+                // Set cursor to current file in file list
+                const currentFileIndex = fileList.indexOf(currentFileName);
+                sidebarSelectedIndex = currentFileIndex >= 0 ? currentFileIndex : -1;
             } else {
-                headingsSelectedIndex++;
+                sidebarSelectedIndex = -1;
             }
-            updateHeadingsSelection();
-        }
+            updateSidebarSelection();
 
-        function selectHeadingsItem() {
-            if (headingsSelectedIndex < 0 || headingsSelectedIndex >= headings.length) return;
+            const headingsTab = document.getElementById('sidebar-tab-headings');
+            const filesTab = document.getElementById('sidebar-tab-files');
+            const headingsPanel = document.getElementById('sidebar-panel-headings');
+            const filesPanel = document.getElementById('sidebar-panel-files');
 
-            const heading = headings[headingsSelectedIndex];
-            const target = document.getElementById(heading.id);
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            hideHeadings();
-        }
-
-        function toggleFileList() {
-            const fileListDropdown = document.getElementById('file-list-dropdown');
-            if (!fileListDropdown) return;
-
-            fileListManuallyVisible = !fileListManuallyVisible;
-
-            if (fileListManuallyVisible) {
-                fileListDropdown.classList.add('show');
+            if (tab === 'headings') {
+                if (headingsTab) headingsTab.classList.add('active');
+                if (filesTab) filesTab.classList.remove('active');
+                if (headingsPanel) headingsPanel.classList.add('active');
+                if (filesPanel) filesPanel.classList.remove('active');
             } else {
-                fileListDropdown.classList.remove('show');
+                if (headingsTab) headingsTab.classList.remove('active');
+                if (filesTab) filesTab.classList.add('active');
+                if (headingsPanel) headingsPanel.classList.remove('active');
+                if (filesPanel) filesPanel.classList.add('active');
             }
+            notifySidebarStateChanged();
         }
 
-        function showFileList() {
-            const fileListDropdown = document.getElementById('file-list-dropdown');
-            if (!fileListDropdown) return;
-
-            fileListManuallyVisible = true;
-            fileListDropdown.classList.add('show');
+        function initSidebarContent() {
+            initSidebarHeadings();
+            initSidebarFiles();
         }
 
-        function hideFileList() {
-            const fileListDropdown = document.getElementById('file-list-dropdown');
-            if (!fileListDropdown) return;
+        function initSidebarHeadings() {
+            const list = document.getElementById('sidebar-headings-list');
+            if (!list) return;
 
-            fileListManuallyVisible = false;
-            fileListSelectedIndex = -1;
-            updateFileListSelection();
-            fileListDropdown.classList.remove('show');
-        }
+            list.innerHTML = '';
 
-        function isFileListVisible() {
-            const fileListDropdown = document.getElementById('file-list-dropdown');
-            return fileListDropdown && fileListDropdown.classList.contains('show');
-        }
-
-        function updateFileListSelection() {
-            const fileListEl = document.getElementById('file-list');
-            if (!fileListEl) return;
-
-            const items = fileListEl.querySelectorAll('.file-list-link');
-            items.forEach((item, index) => {
-                if (index === fileListSelectedIndex) {
-                    item.classList.add('selected');
-                } else {
-                    item.classList.remove('selected');
-                }
-            });
-
-            // Scroll selected item into view
-            if (fileListSelectedIndex >= 0 && fileListSelectedIndex < items.length) {
-                items[fileListSelectedIndex].scrollIntoView({ block: 'nearest' });
-            }
-        }
-
-        function navigateFileListUp() {
-            if (fileList.length <= 1) return;
-
-            if (fileListSelectedIndex <= 0) {
-                fileListSelectedIndex = fileList.length - 1;
-            } else {
-                fileListSelectedIndex--;
-            }
-            updateFileListSelection();
-        }
-
-        function navigateFileListDown() {
-            if (fileList.length <= 1) return;
-
-            if (fileListSelectedIndex >= fileList.length - 1) {
-                fileListSelectedIndex = 0;
-            } else {
-                fileListSelectedIndex++;
-            }
-            updateFileListSelection();
-        }
-
-        function selectFileListItem() {
-            if (fileListSelectedIndex < 0 || fileListSelectedIndex >= fileList.length) return;
-
-            const selectedFileName = fileList[fileListSelectedIndex];
-            const currentIndex = fileList.indexOf(currentFileName);
-            if (fileListSelectedIndex !== currentIndex) {
-                const diff = fileListSelectedIndex - currentIndex;
-                if (diff > 0) {
-                    for (let i = 0; i < diff; i++) {
-                        vscode.postMessage({ command: 'navigateNext' });
-                    }
-                } else {
-                    for (let i = 0; i < Math.abs(diff); i++) {
-                        vscode.postMessage({ command: 'navigatePrevious' });
-                    }
-                }
-            }
-            hideFileList();
-        }
-
-        function initHeadings() {
-            const headingsContainer = document.getElementById('headings-container');
-            const headingsListDropdown = document.getElementById('headings-list-dropdown');
-            const headingsList = document.getElementById('headings-list');
-
-            if (!headingsContainer || !headingsListDropdown || !headingsList) {
-                return;
-            }
-
-            // Hide headings panel if no headings
             if (headings.length === 0) {
-                headingsContainer.style.display = 'none';
-                headingsListDropdown.style.display = 'none';
+                const emptyItem = document.createElement('li');
+                emptyItem.className = 'sidebar-list-item';
+                emptyItem.innerHTML = '<span class="sidebar-list-link" style="opacity: 0.5; cursor: default;">No headings</span>';
+                list.appendChild(emptyItem);
                 return;
             }
 
-            // Generate headings items
-            headings.forEach(heading => {
+            headings.forEach((heading, index) => {
                 const li = document.createElement('li');
-                li.className = 'headings-item level-' + heading.level;
+                li.className = 'sidebar-list-item level-' + heading.level;
+                li.setAttribute('data-index', index);
 
                 const link = document.createElement('a');
-                link.className = 'headings-link';
+                link.className = 'sidebar-list-link';
                 link.textContent = heading.text;
                 link.href = '#' + heading.id;
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     const target = document.getElementById(heading.id);
                     if (target) {
-                        // CSS scroll-margin-top will automatically handle the offset
                         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 });
 
                 li.appendChild(link);
-                headingsList.appendChild(li);
-            });
-
-            // Hover event handling with delay for smooth UX
-            let hideTimeout;
-
-            headingsContainer.addEventListener('mouseenter', () => {
-                clearTimeout(hideTimeout);
-                headingsListDropdown.classList.add('show');
-            });
-
-            headingsContainer.addEventListener('mouseleave', () => {
-                hideTimeout = setTimeout(() => {
-                    if (!headingsListDropdown.matches(':hover') && !headingsManuallyVisible) {
-                        headingsListDropdown.classList.remove('show');
-                    }
-                }, 700); // 700ms delay to allow slow mouse movement to dropdown
-            });
-
-            headingsListDropdown.addEventListener('mouseenter', () => {
-                clearTimeout(hideTimeout);
-                headingsListDropdown.classList.add('show');
-            });
-
-            headingsListDropdown.addEventListener('mouseleave', () => {
-                if (!headingsManuallyVisible) {
-                    headingsListDropdown.classList.remove('show');
-                }
+                list.appendChild(li);
             });
         }
 
-        function initFileList() {
-            const fileListContainer = document.getElementById('file-list-container');
-            const fileListDropdown = document.getElementById('file-list-dropdown');
-            const fileListEl = document.getElementById('file-list');
+        function initSidebarFiles() {
+            const list = document.getElementById('sidebar-files-list');
+            if (!list) return;
 
-            if (!fileListContainer || !fileListDropdown || !fileListEl) {
+            list.innerHTML = '';
+
+            if (fileList.length === 0) {
+                const emptyItem = document.createElement('li');
+                emptyItem.className = 'sidebar-list-item';
+                emptyItem.innerHTML = '<span class="sidebar-list-link" style="opacity: 0.5; cursor: default;">No files</span>';
+                list.appendChild(emptyItem);
                 return;
             }
 
-            // Hide file list panel if no files or only one file
-            if (fileList.length <= 1) {
-                fileListContainer.style.display = 'none';
-                fileListDropdown.style.display = 'none';
-                return;
-            }
-
-            // Generate file list items
-            fileList.forEach(fileName => {
+            fileList.forEach((file, index) => {
                 const li = document.createElement('li');
-                li.className = 'file-list-item';
+                li.className = 'sidebar-list-item';
+                li.setAttribute('data-index', index);
+
+                if (file === currentFileName) {
+                    li.classList.add('current');
+                }
 
                 const link = document.createElement('a');
-                link.className = 'file-list-link';
-                if (fileName === currentFileName) {
-                    link.classList.add('current');
-                }
-                link.textContent = fileName;
+                link.className = 'sidebar-list-link';
+                link.textContent = file;
+                link.href = '#';
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
-                    // Find the index and navigate
-                    const index = fileList.indexOf(fileName);
-                    const currentIndex = fileList.indexOf(currentFileName);
-                    if (index !== -1 && index !== currentIndex) {
-                        const diff = index - currentIndex;
-                        if (diff > 0) {
-                            for (let i = 0; i < diff; i++) {
-                                vscode.postMessage({ command: 'navigateNext' });
-                            }
-                        } else {
-                            for (let i = 0; i < Math.abs(diff); i++) {
-                                vscode.postMessage({ command: 'navigatePrevious' });
-                            }
-                        }
+                    if (file !== currentFileName) {
+                        vscode.postMessage({ command: 'navigateToFile', fileName: file });
                     }
-                    hideFileList();
                 });
 
                 li.appendChild(link);
-                fileListEl.appendChild(li);
+                list.appendChild(li);
             });
+        }
 
-            // Hover event handling with delay for smooth UX
-            let hideTimeoutFileList;
+        function updateSidebarSelection() {
+            const listId = sidebarActiveTab === 'headings' ? 'sidebar-headings-list' : 'sidebar-files-list';
+            const list = document.getElementById(listId);
+            if (!list) return;
 
-            fileListContainer.addEventListener('mouseenter', () => {
-                clearTimeout(hideTimeoutFileList);
-                fileListDropdown.classList.add('show');
-            });
-
-            fileListContainer.addEventListener('mouseleave', () => {
-                hideTimeoutFileList = setTimeout(() => {
-                    if (!fileListDropdown.matches(':hover') && !fileListManuallyVisible) {
-                        fileListDropdown.classList.remove('show');
-                    }
-                }, 700);
-            });
-
-            fileListDropdown.addEventListener('mouseenter', () => {
-                clearTimeout(hideTimeoutFileList);
-                fileListDropdown.classList.add('show');
-            });
-
-            fileListDropdown.addEventListener('mouseleave', () => {
-                if (!fileListManuallyVisible) {
-                    fileListDropdown.classList.remove('show');
+            const items = list.querySelectorAll('.sidebar-list-item');
+            items.forEach((item, index) => {
+                if (index === sidebarSelectedIndex) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
                 }
             });
+
+            // Scroll selected item into view
+            if (sidebarSelectedIndex >= 0 && sidebarSelectedIndex < items.length) {
+                items[sidebarSelectedIndex].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        function navigateSidebarUp() {
+            const maxIndex = sidebarActiveTab === 'headings' ? headings.length : fileList.length;
+            if (maxIndex === 0) return;
+
+            if (sidebarSelectedIndex <= 0) {
+                sidebarSelectedIndex = maxIndex - 1;
+            } else {
+                sidebarSelectedIndex--;
+            }
+            updateSidebarSelection();
+        }
+
+        function navigateSidebarDown() {
+            const maxIndex = sidebarActiveTab === 'headings' ? headings.length : fileList.length;
+            if (maxIndex === 0) return;
+
+            if (sidebarSelectedIndex >= maxIndex - 1) {
+                sidebarSelectedIndex = 0;
+            } else {
+                sidebarSelectedIndex++;
+            }
+            updateSidebarSelection();
+        }
+
+        function selectSidebarItem() {
+            if (sidebarSelectedIndex < 0) return;
+
+            if (sidebarActiveTab === 'headings') {
+                if (sidebarSelectedIndex >= headings.length) return;
+                const heading = headings[sidebarSelectedIndex];
+                const target = document.getElementById(heading.id);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            } else {
+                if (sidebarSelectedIndex >= fileList.length) return;
+                const selectedFileName = fileList[sidebarSelectedIndex];
+                if (selectedFileName !== currentFileName) {
+                    vscode.postMessage({ command: 'navigateToFile', fileName: selectedFileName });
+                }
+            }
         }
 
         function wrapCodeBlocks() {
@@ -2288,8 +2055,6 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         function initPreviewEnhancements() {
-            initHeadings();
-            initFileList();
             wrapCodeBlocks();
             initMermaidButtons();
         }
@@ -2843,101 +2608,84 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             });
         }
 
+        function initSidebarToggle() {
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+        }
+
+        function restoreSidebarState() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            if (!sidebar) return;
+
+            if (sidebarVisible) {
+                sidebar.classList.add('show');
+                if (sidebarToggle) sidebarToggle.classList.add('active');
+                initSidebarContent();
+                switchSidebarTab(sidebarActiveTab);
+            }
+        }
+
         // Initialize enhancements when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 initPreviewEnhancements();
                 initSearch();
                 initFilePathCopy();
+                initSidebarToggle();
+                restoreSidebarState();
             });
         } else {
             initPreviewEnhancements();
             initSearch();
             initFilePathCopy();
-        }
-
-        // Help overlay state management
-        let isHelpVisible = false;
-
-        function showHelp() {
-            const helpOverlay = document.getElementById('help-overlay');
-            if (helpOverlay) {
-                helpOverlay.classList.add('show');
-                isHelpVisible = true;
-            }
-        }
-
-        function hideHelp() {
-            const helpOverlay = document.getElementById('help-overlay');
-            if (helpOverlay) {
-                helpOverlay.classList.remove('show');
-                isHelpVisible = false;
-            }
+            initSidebarToggle();
+            restoreSidebarState();
         }
 
         window.addEventListener('keydown', (event) => {
-            // Show help overlay when 's' key is pressed
-            if (event.key === 's' && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
-                const searchInput = document.getElementById('search-input');
-                if (searchInput && document.activeElement === searchInput) {
-                    return;
-                }
-                event.preventDefault();
-                showHelp();
-                return;
-            }
-
             // 検索入力がフォーカスされている場合はショートカットキーをスキップ
             const searchInput = document.getElementById('search-input');
             if (searchInput && document.activeElement === searchInput) {
                 return;
             }
 
-            // Handle arrow keys for panel navigation
-            if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
-                if (isFileListVisible()) {
+            // Handle arrow keys for sidebar navigation (up/down only)
+            if (event.key === 'ArrowUp') {
+                if (isSidebarVisible()) {
                     event.preventDefault();
-                    navigateFileListUp();
-                    return;
-                } else if (isHeadingsVisible()) {
-                    event.preventDefault();
-                    navigateHeadingsUp();
+                    navigateSidebarUp();
                     return;
                 }
-            } else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
-                if (isFileListVisible()) {
+            } else if (event.key === 'ArrowDown') {
+                if (isSidebarVisible()) {
                     event.preventDefault();
-                    navigateFileListDown();
-                    return;
-                } else if (isHeadingsVisible()) {
-                    event.preventDefault();
-                    navigateHeadingsDown();
+                    navigateSidebarDown();
                     return;
                 }
             } else if (event.key === 'Enter') {
-                if (isFileListVisible() && fileListSelectedIndex >= 0) {
+                if (isSidebarVisible() && sidebarSelectedIndex >= 0) {
                     event.preventDefault();
-                    selectFileListItem();
-                    return;
-                } else if (isHeadingsVisible() && headingsSelectedIndex >= 0) {
-                    event.preventDefault();
-                    selectHeadingsItem();
+                    selectSidebarItem();
                     return;
                 }
             } else if (event.key === 'Escape') {
-                if (isHelpVisible) {
+                if (isSidebarVisible()) {
                     event.preventDefault();
-                    hideHelp();
-                    return;
-                } else if (isFileListVisible()) {
-                    event.preventDefault();
-                    hideFileList();
-                    return;
-                } else if (isHeadingsVisible()) {
-                    event.preventDefault();
-                    hideHeadings();
+                    hideSidebar();
                     return;
                 }
+            } else if (event.key === 'Tab' && isSidebarVisible()) {
+                event.preventDefault();
+                // Switch sidebar tabs with Tab key
+                if (sidebarActiveTab === 'headings') {
+                    switchSidebarTab('files');
+                } else {
+                    switchSidebarTab('headings');
+                }
+                return;
             }
 
             if (event.key === 'ArrowRight') {
@@ -2958,15 +2706,14 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                         vscode.postMessage({ command: 'navigatePrevious' });
                     }
                 }
-            } else if (event.key === 'f') {
-                event.preventDefault();
-                showSearch();
             } else if (event.key === 'h') {
                 event.preventDefault();
-                toggleHeadings();
-            } else if (event.key === 'l') {
+                showSidebar();
+                switchSidebarTab('headings');
+            } else if (event.key === 'f') {
                 event.preventDefault();
-                toggleFileList();
+                showSidebar();
+                switchSidebarTab('files');
             } else if (event.key === 'c' && !event.metaKey && !event.ctrlKey) {
                 event.preventDefault();
                 copySelection();
@@ -2991,13 +2738,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === 'q') {
                 event.preventDefault();
                 copyAsQuote();
-            }
-        });
-
-        window.addEventListener('keyup', (event) => {
-            // Hide help overlay when 's' key is released
-            if (event.key === 's') {
-                hideHelp();
+            } else if (event.key === 's') {
+                event.preventDefault();
+                toggleSidebar();
             }
         });
     </script>
@@ -3033,117 +2776,28 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             </div>
         </div>
         <div class="header-panels">
-            <div id="headings-container" class="headings-container">
-                <div class="headings-header" title="Toggle headings panel [h]">
-                    <span class="headings-title">Headings</span>
-                </div>
-            </div>
-            <div id="file-list-container" class="file-list-container">
-                <div class="file-list-header" title="Toggle file list panel [l]">
-                    <span class="file-list-title">File list</span>
-                </div>
-            </div>
+            <button id="sidebar-toggle" class="sidebar-toggle" title="Toggle sidebar [s]">☰</button>
         </div>
     </div>
-    <div id="file-list-dropdown" class="file-list-dropdown">
-        <ul id="file-list" class="file-list"></ul>
-    </div>
-    <div id="headings-list-dropdown" class="headings-list-dropdown">
-        <ul id="headings-list" class="headings-list"></ul>
-    </div>
-    <div id="file-list-dropdown" class="file-list-dropdown">
-        <ul id="file-list" class="file-list"></ul>
-    </div>
-    <div id="help-overlay">
-        <div class="help-content">
-            <div class="help-title">Keyboard Shortcuts</div>
-            
-            <div class="help-section">
-                <div class="help-section-title">Navigation</div>
-                <div class="help-item">
-                    <span class="help-key">←→</span>
-                    <span class="help-description">Navigate between files</span>
-                </div>
-                <div class="help-item">
-                    <span class="help-key">↑↓</span>
-                    <span class="help-description">Navigate in panels</span>
-                </div>
-                <div class="help-item">
-                    <span class="help-key">Enter</span>
-                    <span class="help-description">Select item in active panel</span>
-                </div>
-                <div class="help-item">
-                    <span class="help-key">Esc</span>
-                    <span class="help-description">Close panels or help</span>
-                </div>
-            </div>
-
-            <div class="help-section">
-                <div class="help-section-title">Panels</div>
-                <div class="help-item">
-                    <span class="help-key">h</span>
-                    <span class="help-description">Toggle headings panel</span>
-                </div>
-                <div class="help-item">
-                    <span class="help-key">l</span>
-                    <span class="help-description">Toggle file list panel</span>
-                </div>
-                <div class="help-item">
-                    <span class="help-key">f</span>
-                    <span class="help-description">Show search</span>
-                </div>
-            </div>
-
-            <div class="help-section">
-                <div class="help-section-title">Editing</div>
-                <div class="help-item">
-                    <span class="help-key">c</span>
-                    <span class="help-description">Copy selected text</span>
-                </div>
-                <div class="help-item">
-                    <span class="help-key">q</span>
-                    <span class="help-description">Copy as quote</span>
-                </div>
-                <div class="help-item">
-                    <span class="help-key">e</span>
-                    <span class="help-description">Edit in editor</span>
-                </div>
-            </div>
-
-            <div class="help-section">
-                <div class="help-section-title">View</div>
-                <div class="help-item">
-                    <span class="help-key">+</span>
-                    <span class="help-description">Zoom in</span>
-                </div>
-                <div class="help-item">
-                    <span class="help-key">-</span>
-                    <span class="help-description">Zoom out</span>
-                </div>
-                <div class="help-item">
-                    <span class="help-key">r</span>
-                    <span class="help-description">Reset zoom</span>
-                </div>
-                <div class="help-item">
-                    <span class="help-key">t</span>
-                    <span class="help-description">Toggle theme</span>
-                </div>
-                <div class="help-item">
-                    <span class="help-key">p</span>
-                    <span class="help-description">Toggle pin</span>
-                </div>
-            </div>
-
-            <div class="help-section">
-                <div class="help-section-title">Help</div>
-                <div class="help-item">
-                    <span class="help-key">s</span>
-                    <span class="help-description">Show this help (hold to display)</span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="main-container">
+        <div class="preview-content">
     ${convertedHtml}
+        </div>
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-tabs">
+                <button id="sidebar-tab-headings" class="sidebar-tab active" onclick="switchSidebarTab('headings')">Headings</button>
+                <button id="sidebar-tab-files" class="sidebar-tab" onclick="switchSidebarTab('files')">Files</button>
+            </div>
+            <div class="sidebar-content">
+                <div id="sidebar-panel-headings" class="sidebar-panel active">
+                    <ul id="sidebar-headings-list" class="sidebar-list"></ul>
+                </div>
+                <div id="sidebar-panel-files" class="sidebar-panel">
+                    <ul id="sidebar-files-list" class="sidebar-list"></ul>
+                </div>
+            </div>
+        </aside>
+    </div>
 </body>
 </html>`;
     }
