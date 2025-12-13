@@ -26,6 +26,7 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 | File Path Display | Always visible | Shows the relative path from project root at the top of the preview |
 | Code Block Syntax Highlighting | Automatic | Adds language-aware coloring to fenced code blocks when you specify a language (for example, <code>```javascript</code>) |
 | Code Block Copy Button | Hover toolbar | Copies the entire fenced code block to your clipboard with one click |
+| Mermaid Diagrams | Automatic | Renders Mermaid diagrams (flowcharts, sequence diagrams, class diagrams, etc.) directly in the preview |
 | Theme-Aware Scrollbars | Automatic | Scrollbars inside the preview now respect the active light/dark theme for better readability |
 | Open Settings | Toolbar only | Jump to the extension's configuration section |
 
