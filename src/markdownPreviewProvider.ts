@@ -694,14 +694,20 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     }
 
     private convertMermaidBlocks(html: string): string {
+        // Match code blocks with language-mermaid class (may have additional classes like hljs)
         return html.replace(
-            /<code class="language-mermaid">([\s\S]*?)<\/code>/g,
+            /<pre><code class="[^"]*language-mermaid[^"]*">([\s\S]*?)<\/code><\/pre>/g,
             '<div class="mermaid">$1</div>'
         );
     }
 
     private highlightCodeBlock(code: string, lang: string): string {
         const normalizedLang = (lang ?? '').trim().split(/\s+/)[0].toLowerCase();
+
+        // Skip highlighting for mermaid blocks - they will be handled by mermaid.js
+        if (normalizedLang === 'mermaid') {
+            return '';
+        }
 
         if (normalizedLang && hljs.getLanguage(normalizedLang)) {
             try {
