@@ -2885,8 +2885,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                             <li><strong>Theme Toggle:</strong> Switch between light and dark themes</li>
                             <li><strong>Zoom:</strong> Adjust preview text size (50-200%)</li>
                             <li><strong>Edit:</strong> Open the previewed file in editor</li>
-                            <li><strong>Navigation:</strong> Move between markdown files in the same directory</li>
-                            <li><strong>Sidebar:</strong> Browse headings, files, or this help page</li>
+                            <li><strong>Refresh:</strong> Reload the preview content</li>
+                            <li><strong>Open Settings:</strong> Access extension configuration</li>
                         </ul>
                         
                         <h3>Keyboard Shortcuts</h3>
