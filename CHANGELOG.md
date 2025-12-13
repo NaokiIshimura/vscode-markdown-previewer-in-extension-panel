@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.7] - 2025-12-13
 
 ### Added
-- Press `f` key as an alternative shortcut to open sidebar and show File list tab (same as `l` key)
 - Sidebar state persistence: sidebar remains visible when switching to different files
 - File list tab now auto-selects the current file when opened, making it easier to navigate relative to your position
 
@@ -16,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keyboard shortcuts reorganization for better usability
   - Press `s` key to toggle sidebar visibility (previously `b`)
   - Press `h` key to open sidebar and show Headings tab (previously toggled dropdown)
-  - Press `l` or `f` key to open sidebar and show File list tab (previously toggled dropdown)
+  - Press `f` key to open sidebar and show File list tab (previously `l` key toggled dropdown)
   - Press `Tab` key to switch between Headings and Files tabs when sidebar is open
   - Use arrow keys (↑/↓) to navigate sidebar items, Enter to select, Esc to close
   - Left/right arrow keys (←/→) now always navigate between files, even when sidebar is open
@@ -28,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Headings dropdown panel (replaced by sidebar Headings tab)
 - File list dropdown panel (replaced by sidebar File list tab)
 - Search feature (previously `f` key, now repurposed for File list)
+- `l` key shortcut for File list (use `f` key instead)
 
 ## [0.4.6] - 2025-12-13
 

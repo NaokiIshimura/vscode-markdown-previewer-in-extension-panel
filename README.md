@@ -12,7 +12,7 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 | --- | --- | --- |
 | Sidebar | `s` | Toggle sidebar panel with Headings and Files tabs; use Tab to switch between tabs, ↑/↓ to navigate items, Enter to select, Esc to close |
 | Headings | `h` | Open sidebar and show Headings tab; displays h1-h6 navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
-| File list | `l` or `f` | Open sidebar and show File list tab; displays markdown files in the same directory for quick navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
+| File list | `f` | Open sidebar and show File list tab; displays markdown files in the same directory for quick navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
 | Copy | `c` | Copy selected text to clipboard; shows VS Code notification message |
 | File Path Copy | Click path | Copy the file path to clipboard by clicking the file path; shows VS Code notification message |
 | Copy as Quote | `q` | When text is selected, press `q` to copy selected text with `> ` prefix on each line for quoting in Markdown |
@@ -55,7 +55,7 @@ Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window
 ## Tips & Known Limitations
 - **Sidebar**: Press `s` to toggle a sidebar panel that combines Headings and Files in a tabbed interface. Use Tab to switch between tabs, ↑/↓ to navigate items, Enter to select, and Esc to close.
 - **Headings**: Press `h` to open the sidebar and display the Headings tab. The sidebar automatically extracts h1-h6 headings from your Markdown document and provides clickable navigation.
-- **File list**: Press `l` or `f` to open the sidebar and display the File list tab. The sidebar displays all Markdown files in the same directory as the current file, with the current file highlighted. Click any file to switch to it.
+- **File list**: Press `f` to open the sidebar and display the File list tab. The sidebar displays all Markdown files in the same directory as the current file, with the current file highlighted. Click any file to switch to it.
 - The File list tab only appears when there are 2 or more markdown files in the directory.
 - When the sidebar is open, use ↑/↓ to navigate items, Enter to select, and Esc to close.
 - Left/right arrow keys (←/→) always navigate to the previous/next Markdown file, even when the sidebar is open.

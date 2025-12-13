@@ -2710,7 +2710,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 event.preventDefault();
                 showSidebar();
                 switchSidebarTab('headings');
-            } else if (event.key === 'l' || event.key === 'f') {
+            } else if (event.key === 'f') {
                 event.preventDefault();
                 showSidebar();
                 switchSidebarTab('files');
