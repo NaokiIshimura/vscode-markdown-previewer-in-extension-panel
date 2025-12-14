@@ -2567,7 +2567,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             if (!filePathElement) return;
 
             const copyIcon = filePathElement.querySelector('.copy-icon');
-            const filePath = filePathElement.textContent.replace('📋', '').trim();
+            // Get file path by cloning the element and removing the copy icon
+            const filePathClone = filePathElement.cloneNode(true);
+            const clonedCopyIcon = filePathClone.querySelector('.copy-icon');
+            if (clonedCopyIcon) {
+                clonedCopyIcon.remove();
+            }
+            const filePath = filePathClone.textContent.trim();
 
             navigator.clipboard.writeText(filePath).then(() => {
                 // Success - send message to VS Code to show notification

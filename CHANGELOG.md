@@ -5,6 +5,13 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.9] - 2025-12-14
+
+### Fixed
+- File path copy now correctly excludes the checkmark icon (✓) that appears after successful copy
+  - Previously, copying the file path after a successful copy would include the checkmark in the copied text (e.g., "README.md✓")
+  - Now the copy icon content is properly excluded when extracting the file path
+
 ## [0.4.8] - 2025-12-13
 
 ### Added
