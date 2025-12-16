@@ -5,6 +5,13 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.10] - 2025-12-16
+
+### Fixed
+- Mermaid diagram copy feature now correctly handles non-ASCII characters (Japanese, Chinese, etc.)
+  - Previously, copying Mermaid diagrams containing non-ASCII characters would result in garbled text
+  - Fixed by properly decoding UTF-8 encoded Base64 data using TextDecoder
+
 ## [0.4.9] - 2025-12-14
 
 ### Fixed

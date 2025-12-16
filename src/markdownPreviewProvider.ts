@@ -2153,7 +2153,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                     }
 
                     try {
-                        const source = atob(encodedSource);
+                        // Decode Base64 to UTF-8 string (handles non-ASCII characters like Japanese)
+                        const binaryString = atob(encodedSource);
+                        const bytes = new Uint8Array(binaryString.length);
+                        for (let i = 0; i < binaryString.length; i++) {
+                            bytes[i] = binaryString.charCodeAt(i);
+                        }
+                        const source = new TextDecoder('utf-8').decode(bytes);
                         const markdown = '\`\`\`mermaid\\n' + source + '\\n\`\`\`';
                         await navigator.clipboard.writeText(markdown);
                         button.textContent = 'Copied!';
