@@ -88,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('markdownPreview.openSettings', () => {
-            void vscode.commands.executeCommand('workbench.action.openSettings', 'markdownPreview');
+            void vscode.commands.executeCommand('workbench.action.openSettings', 'markdownPreviewInExtensionPanel');
         })
     );
 
@@ -130,7 +130,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Listen for configuration changes
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration((event) => {
-            if (event.affectsConfiguration('markdownPreview.defaultZoomLevel')) {
+            if (event.affectsConfiguration('markdownPreviewInExtensionPanel.defaultZoomLevel')) {
                 provider.onConfigurationChanged();
             }
         })

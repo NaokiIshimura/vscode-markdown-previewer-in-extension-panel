@@ -20,7 +20,7 @@ export class ThemeManager {
         // Listen for configuration change events
         context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration((event) => {
-                if (event.affectsConfiguration('markdownPreview.themeMode')) {
+                if (event.affectsConfiguration('markdownPreviewInExtensionPanel.themeMode')) {
                     this.invalidateCache();
                     this.handleConfigChange();
                 }
@@ -42,7 +42,7 @@ export class ThemeManager {
      * Set theme mode
      */
     public async setThemeMode(mode: ThemeMode): Promise<void> {
-        const config = vscode.workspace.getConfiguration('markdownPreview');
+        const config = vscode.workspace.getConfiguration('markdownPreviewInExtensionPanel');
         await config.update('themeMode', mode, vscode.ConfigurationTarget.Global);
         this.invalidateCache();
     }
@@ -73,7 +73,7 @@ export class ThemeManager {
      * Load theme mode from configuration
      */
     private loadThemeModeFromConfig(): ThemeMode {
-        const config = vscode.workspace.getConfiguration('markdownPreview');
+        const config = vscode.workspace.getConfiguration('markdownPreviewInExtensionPanel');
         const value = config.get<string>('themeMode', 'auto');
         return this.validateThemeMode(value);
     }

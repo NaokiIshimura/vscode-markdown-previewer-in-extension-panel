@@ -3,7 +3,7 @@
   "publisher": "nacn",
   "displayName": "Markdown Preview in Extension Area",
   "description": "Display markdown preview in sidebar or panel",
-  "version": "0.4.14",
+  "version": "0.4.15",
   "icon": "assets/icon-128.png",
   "engines": {
     "vscode": "^1.74.0"
@@ -21,14 +21,14 @@
     "configuration": {
       "title": "Markdown Preview in Extension Area",
       "properties": {
-        "markdownPreview.defaultZoomLevel": {
+        "markdownPreviewInExtensionPanel.defaultZoomLevel": {
           "type": "number",
           "default": 100,
           "minimum": 50,
           "maximum": 200,
           "description": "Default zoom level for markdown preview (50-200%)"
         },
-        "markdownPreview.themeMode": {
+        "markdownPreviewInExtensionPanel.themeMode": {
           "type": "string",
           "enum": [
             "auto",
@@ -43,7 +43,7 @@
             "Always use the dark theme"
           ]
         },
-        "markdownPreview.fileSortOrder": {
+        "markdownPreviewInExtensionPanel.fileSortOrder": {
           "type": "string",
           "enum": [
             "name",
