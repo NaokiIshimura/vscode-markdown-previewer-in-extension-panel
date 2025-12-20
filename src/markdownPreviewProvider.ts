@@ -41,7 +41,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     private readonly _zoomStep = 10;
     private _fileListCache: { dirUri: string; files: string[] } | undefined;
     private _sidebarVisible = false;
-    private _sidebarActiveTab: 'headings' | 'files' | 'help' = 'headings';
+    private _sidebarActiveTab: 'outline' | 'files' | 'help' = 'outline';
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -382,14 +382,14 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             documentUri: targetDocument.uri
         };
         const htmlContent = this._md.render(markdownContent, env);
-        const headings = this.extractHeadings(markdownContent);
+        const outlineItems = this.extractOutlineItems(markdownContent);
         const relativePath = this.getRelativeFilePath(targetDocument.uri);
         const isOpenInEditor = this.isFileOpenInEditor(targetDocument.uri);
         const fileIcon = isOpenInEditor ? '📝' : '📄';
         const fileList = await this.getMarkdownFilesInDirectory(targetDocument.uri);
         const currentFileName = path.basename(targetDocument.uri.fsPath);
         this.setCanPin(true);
-        this._view.webview.html = this.getWebviewContent(this._view.webview, htmlContent, relativePath, fileIcon, headings, fileList, currentFileName);
+        this._view.webview.html = this.getWebviewContent(this._view.webview, htmlContent, relativePath, fileIcon, outlineItems, fileList, currentFileName);
 
         // Reset scroll position if document has changed
         if (isDocumentChanged) {
@@ -894,13 +894,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         return roots;
     }
 
-    private getWebviewContent(webview: vscode.Webview, htmlContent: string, relativePath: string, fileIcon: string, headings: HeadingInfo[], fileList: string[], currentFileName: string): string {
+    private getWebviewContent(webview: vscode.Webview, htmlContent: string, relativePath: string, fileIcon: string, outlineItems: HeadingInfo[], fileList: string[], currentFileName: string): string {
         const themeClass = this.getThemeClass();
         const colorScheme = this._theme === 'dark' ? 'dark' : 'light';
         const fontSize = Math.max(this._minZoom, Math.min(this._maxZoom, this._zoomLevel)) / 100;
         const mermaidTheme = this.getMermaidTheme();
         const convertedHtml = this.convertMermaidBlocks(htmlContent);
-        const headingsJson = JSON.stringify(headings);
+        const outlineItemsJson = JSON.stringify(outlineItems);
         const fileListJson = JSON.stringify(fileList);
         const currentFileNameJson = JSON.stringify(currentFileName);
         const sidebarVisibleJson = JSON.stringify(this._sidebarVisible);
@@ -1682,7 +1682,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             background-color: var(--md-code-background);
         }
 
-        /* Sidebar headings indentation */
+        /* Sidebar outline indentation */
         .sidebar-list-item.level-1 .sidebar-list-link {
             padding-left: 8px;
             font-weight: 600;
@@ -1831,8 +1831,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             }
         });
 
-        // Initialize headings
-        const headings = ${headingsJson};
+        // Initialize outline items
+        const outlineItems = ${outlineItemsJson};
 
         // Initialize file list
         const fileList = ${fileListJson};
@@ -1912,25 +1912,25 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             }
             updateSidebarSelection();
 
-            const headingsTab = document.getElementById('sidebar-tab-headings');
+            const outlineTab = document.getElementById('sidebar-tab-outline');
             const filesTab = document.getElementById('sidebar-tab-files');
             const helpTab = document.getElementById('sidebar-tab-help');
-            const headingsPanel = document.getElementById('sidebar-panel-headings');
+            const outlinePanel = document.getElementById('sidebar-panel-outline');
             const filesPanel = document.getElementById('sidebar-panel-files');
             const helpPanel = document.getElementById('sidebar-panel-help');
 
             // Remove active class from all tabs and panels
-            if (headingsTab) headingsTab.classList.remove('active');
+            if (outlineTab) outlineTab.classList.remove('active');
             if (filesTab) filesTab.classList.remove('active');
             if (helpTab) helpTab.classList.remove('active');
-            if (headingsPanel) headingsPanel.classList.remove('active');
+            if (outlinePanel) outlinePanel.classList.remove('active');
             if (filesPanel) filesPanel.classList.remove('active');
             if (helpPanel) helpPanel.classList.remove('active');
 
             // Add active class to selected tab and panel
-            if (tab === 'headings') {
-                if (headingsTab) headingsTab.classList.add('active');
-                if (headingsPanel) headingsPanel.classList.add('active');
+            if (tab === 'outline') {
+                if (outlineTab) outlineTab.classList.add('active');
+                if (outlinePanel) outlinePanel.classList.add('active');
             } else if (tab === 'files') {
                 if (filesTab) filesTab.classList.add('active');
                 if (filesPanel) filesPanel.classList.add('active');
@@ -1942,36 +1942,36 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         function initSidebarContent() {
-            initSidebarHeadings();
+            initSidebarOutline();
             initSidebarFiles();
         }
 
-        function initSidebarHeadings() {
-            const list = document.getElementById('sidebar-headings-list');
+        function initSidebarOutline() {
+            const list = document.getElementById('sidebar-outline-list');
             if (!list) return;
 
             list.innerHTML = '';
 
-            if (headings.length === 0) {
+            if (outlineItems.length === 0) {
                 const emptyItem = document.createElement('li');
                 emptyItem.className = 'sidebar-list-item';
-                emptyItem.innerHTML = '<span class="sidebar-list-link" style="opacity: 0.5; cursor: default;">No headings</span>';
+                emptyItem.innerHTML = '<span class="sidebar-list-link" style="opacity: 0.5; cursor: default;">No outline</span>';
                 list.appendChild(emptyItem);
                 return;
             }
 
-            headings.forEach((heading, index) => {
+            outlineItems.forEach((item, index) => {
                 const li = document.createElement('li');
-                li.className = 'sidebar-list-item level-' + heading.level;
+                li.className = 'sidebar-list-item level-' + item.level;
                 li.setAttribute('data-index', index);
 
                 const link = document.createElement('a');
                 link.className = 'sidebar-list-link';
-                link.textContent = heading.text;
-                link.href = '#' + heading.id;
+                link.textContent = item.text;
+                link.href = '#' + item.id;
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
-                    const target = document.getElementById(heading.id);
+                    const target = document.getElementById(item.id);
                     if (target) {
                         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
@@ -2022,7 +2022,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         function updateSidebarSelection() {
-            const listId = sidebarActiveTab === 'headings' ? 'sidebar-headings-list' : 'sidebar-files-list';
+            const listId = sidebarActiveTab === 'outline' ? 'sidebar-outline-list' : 'sidebar-files-list';
             const list = document.getElementById(listId);
             if (!list) return;
 
@@ -2042,7 +2042,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         function navigateSidebarUp() {
-            const maxIndex = sidebarActiveTab === 'headings' ? headings.length : fileList.length;
+            const maxIndex = sidebarActiveTab === 'outline' ? outlineItems.length : fileList.length;
             if (maxIndex === 0) return;
 
             if (sidebarSelectedIndex <= 0) {
@@ -2054,7 +2054,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         function navigateSidebarDown() {
-            const maxIndex = sidebarActiveTab === 'headings' ? headings.length : fileList.length;
+            const maxIndex = sidebarActiveTab === 'outline' ? outlineItems.length : fileList.length;
             if (maxIndex === 0) return;
 
             if (sidebarSelectedIndex >= maxIndex - 1) {
@@ -2068,10 +2068,10 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         function selectSidebarItem() {
             if (sidebarSelectedIndex < 0) return;
 
-            if (sidebarActiveTab === 'headings') {
-                if (sidebarSelectedIndex >= headings.length) return;
-                const heading = headings[sidebarSelectedIndex];
-                const target = document.getElementById(heading.id);
+            if (sidebarActiveTab === 'outline') {
+                if (sidebarSelectedIndex >= outlineItems.length) return;
+                const outlineItem = outlineItems[sidebarSelectedIndex];
+                const target = document.getElementById(outlineItem.id);
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
@@ -2474,7 +2474,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                     if (tag === 'script' || tag === 'style' ||
                         parent.classList?.contains('search-container') ||
                         parent.classList?.contains('file-path-header') ||
-                        parent.classList?.contains('headings-list-dropdown')) {
+                        parent.classList?.contains('outline-list-dropdown')) {
                         return true;
                     }
                     parent = parent.parentElement;
@@ -2770,12 +2770,12 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (event.key === 'Tab' && isSidebarVisible()) {
                 event.preventDefault();
                 // Switch sidebar tabs with Tab key
-                if (sidebarActiveTab === 'headings') {
+                if (sidebarActiveTab === 'outline') {
                     switchSidebarTab('files');
                 } else if (sidebarActiveTab === 'files') {
                     switchSidebarTab('help');
                 } else {
-                    switchSidebarTab('headings');
+                    switchSidebarTab('outline');
                 }
                 return;
             }
@@ -2798,10 +2798,10 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                         vscode.postMessage({ command: 'navigatePrevious' });
                     }
                 }
-            } else if (event.key === 'h') {
+            } else if (event.key === 'o') {
                 event.preventDefault();
                 showSidebar();
-                switchSidebarTab('headings');
+                switchSidebarTab('outline');
             } else if (event.key === 'f') {
                 event.preventDefault();
                 showSidebar();
@@ -2877,13 +2877,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         </div>
         <aside id="sidebar" class="sidebar">
             <div class="sidebar-tabs">
-                <button id="sidebar-tab-headings" class="sidebar-tab active" onclick="switchSidebarTab('headings')">Headings</button>
+                <button id="sidebar-tab-outline" class="sidebar-tab active" onclick="switchSidebarTab('outline')">Outline</button>
                 <button id="sidebar-tab-files" class="sidebar-tab" onclick="switchSidebarTab('files')">Files</button>
                 <button id="sidebar-tab-help" class="sidebar-tab" onclick="switchSidebarTab('help')">Help</button>
             </div>
             <div class="sidebar-content">
-                <div id="sidebar-panel-headings" class="sidebar-panel active">
-                    <ul id="sidebar-headings-list" class="sidebar-list"></ul>
+                <div id="sidebar-panel-outline" class="sidebar-panel active">
+                    <ul id="sidebar-outline-list" class="sidebar-list"></ul>
                 </div>
                 <div id="sidebar-panel-files" class="sidebar-panel">
                     <ul id="sidebar-files-list" class="sidebar-list"></ul>
@@ -2910,7 +2910,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td><code>h</code></td><td>Show sidebar (Headings tab)</td></tr>
+                                <tr><td><code>o</code></td><td>Show sidebar (Outline tab)</td></tr>
                                 <tr><td><code>f</code></td><td>Show sidebar (Files tab)</td></tr>
                                 <tr><td><code>s</code></td><td>Toggle sidebar</td></tr>
                                 <tr><td><code>Tab</code></td><td>Switch between sidebar tabs</td></tr>
@@ -3045,27 +3045,27 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         return relativePath;
     }
 
-    private extractHeadings(markdownContent: string): HeadingInfo[] {
-        const headings: HeadingInfo[] = [];
+    private extractOutlineItems(markdownContent: string): HeadingInfo[] {
+        const items: HeadingInfo[] = [];
         const tokens = this._md.parse(markdownContent, {});
 
         for (let i = 0; i < tokens.length; i++) {
             const token = tokens[i];
             if (token.type === 'heading_open') {
                 const level = parseInt(token.tag.substring(1), 10);
-                // Include all heading levels (h1-h6) in TOC
+                // Include all heading levels (h1-h6) in outline
                 if (level <= 6) {
                     const contentToken = tokens[i + 1];
                     if (contentToken && contentToken.type === 'inline' && contentToken.content) {
                         const text = contentToken.content;
                         const id = token.attrGet('id') || this.slugify(text);
-                        headings.push({ level, text, id });
+                        items.push({ level, text, id });
                     }
                 }
             }
         }
 
-        return headings;
+        return items;
     }
 
     private slugify(text: string): string {

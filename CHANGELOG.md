@@ -5,6 +5,15 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.11] - 2025-12-20
+
+### Changed
+- Renamed "Headings" tab to "Outline" in the sidebar
+  - Tab label now displays "Outline" instead of "Headings"
+  - Keyboard shortcut changed from `h` to `o` (for "Outline")
+  - Help section updated to reflect the new naming
+  - Internal code refactored (function names, variable names, DOM IDs)
+
 ## [0.4.10] - 2025-12-16
 
 ### Fixed
