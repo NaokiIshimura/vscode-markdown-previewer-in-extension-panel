@@ -3,7 +3,7 @@
   "publisher": "nacn",
   "displayName": "Markdown Preview in Extension Area",
   "description": "Display markdown preview in sidebar or panel",
-  "version": "0.4.11",
+  "version": "0.4.12",
   "icon": "assets/icon-128.png",
   "engines": {
     "vscode": "^1.74.0"
@@ -41,6 +41,19 @@
             "Automatically sync with the VS Code theme",
             "Always use the light theme",
             "Always use the dark theme"
+          ]
+        },
+        "markdownPreview.fileSortOrder": {
+          "type": "string",
+          "enum": [
+            "name",
+            "modified"
+          ],
+          "default": "name",
+          "description": "Sort order for files in the sidebar Files tab.",
+          "enumDescriptions": [
+            "Sort files alphabetically by name",
+            "Sort files by modification date (newest first)"
           ]
         }
       }
