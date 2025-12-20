@@ -1599,6 +1599,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             position: sticky;
             top: 45px;
             height: calc(100vh - 60px);
+            margin-left: 16px;
             margin-right: -16px;
             margin-top: -16px;
             margin-bottom: -16px;
