@@ -1722,6 +1722,30 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             padding-left: 48px;
         }
 
+        /* Outline panel header */
+        .sidebar-outline-header {
+            display: flex;
+            align-items: center;
+            padding: 4px 0;
+            margin-bottom: 4px;
+            border-bottom: 1px solid var(--file-path-border);
+            font-size: 0.75em;
+            color: var(--md-foreground);
+            opacity: 0.8;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-outline-header .outline-file-icon {
+            margin-right: 4px;
+        }
+
+        .sidebar-outline-header .outline-file-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         /* Files panel header */
         .sidebar-files-header {
             display: flex;
@@ -2963,6 +2987,10 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             </div>
             <div class="sidebar-content">
                 <div id="sidebar-panel-outline" class="sidebar-panel active">
+                    <div class="sidebar-outline-header">
+                        <span class="outline-file-icon">${fileIcon}</span>
+                        <span class="outline-file-name">${currentFileName}</span>
+                    </div>
                     <ul id="sidebar-outline-list" class="sidebar-list"></ul>
                 </div>
                 <div id="sidebar-panel-files" class="sidebar-panel">
