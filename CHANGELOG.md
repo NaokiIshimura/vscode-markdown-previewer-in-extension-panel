@@ -5,6 +5,15 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.15] - 2025-12-20
+
+### Changed
+- Renamed settings property prefix from `markdownPreview` to `markdownPreviewInExtensionPanel`
+  - `markdownPreviewInExtensionPanel.defaultZoomLevel` - Default zoom percentage (50-200)
+  - `markdownPreviewInExtensionPanel.themeMode` - Theme mode for the preview (auto, light, dark)
+  - `markdownPreviewInExtensionPanel.fileSortOrder` - Sort order for files in the Files tab (name, modified)
+  - This change prevents conflicts with other Markdown preview extensions that may use similar settings names
+
 ## [0.4.14] - 2025-12-20
 
 ### Improved
@@ -28,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Sort button displayed in the Files tab header showing current sort mode
   - Press `a` key to toggle sort order from anywhere in the preview
   - Sort icon indicates current mode: 🔤 for name, 🕐 for modified date
-  - Sort order is persisted in VS Code settings (`markdownPreview.fileSortOrder`)
+  - Sort order is persisted in VS Code settings (`markdownPreviewInExtensionPanel.fileSortOrder`)
 
 ## [0.4.11] - 2025-12-20
 

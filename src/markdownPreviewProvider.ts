@@ -666,7 +666,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     }
 
     private async saveZoomLevel(zoomLevel: number): Promise<void> {
-        const config = vscode.workspace.getConfiguration('markdownPreview');
+        const config = vscode.workspace.getConfiguration('markdownPreviewInExtensionPanel');
         await config.update('defaultZoomLevel', zoomLevel, vscode.ConfigurationTarget.Global);
     }
 
@@ -752,13 +752,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     }
 
     private getDefaultZoomLevel(): number {
-        const config = vscode.workspace.getConfiguration('markdownPreview');
+        const config = vscode.workspace.getConfiguration('markdownPreviewInExtensionPanel');
         const defaultZoom = config.get<number>('defaultZoomLevel', 100);
         return Math.max(this._minZoom, Math.min(this._maxZoom, defaultZoom));
     }
 
     private getDefaultFileSortOrder(): FileSortOrder {
-        const config = vscode.workspace.getConfiguration('markdownPreview');
+        const config = vscode.workspace.getConfiguration('markdownPreviewInExtensionPanel');
         const sortOrder = config.get<string>('fileSortOrder', 'name');
         return sortOrder === 'modified' ? 'modified' : 'name';
     }
@@ -3165,7 +3165,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         this.invalidateFileListCache();
         void this.updatePreview();
         // Save sort order to settings
-        const config = vscode.workspace.getConfiguration('markdownPreview');
+        const config = vscode.workspace.getConfiguration('markdownPreviewInExtensionPanel');
         void config.update('fileSortOrder', this._fileSortOrder, vscode.ConfigurationTarget.Global);
     }
 
