@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Sort button displayed in the Files tab header showing current sort mode
   - Press `a` key to toggle sort order from anywhere in the preview
   - Sort icon indicates current mode: 🔤 for name, 🕐 for modified date
+  - Sort order is persisted in VS Code settings (`markdownPreview.fileSortOrder`)
 
 ## [0.4.11] - 2025-12-20
 

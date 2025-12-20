@@ -41,6 +41,7 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 | --- | --- | --- |
 | `markdownPreview.defaultZoomLevel` | `100` | Default zoom percentage (50–200) |
 | `markdownPreview.themeMode` | `auto` | Theme mode for the preview (`auto`, `light`, `dark`) |
+| `markdownPreview.fileSortOrder` | `name` | Sort order for files in the Files tab (`name`, `modified`) |
 
 ## Requirements
 - Visual Studio Code 1.74.0 or later

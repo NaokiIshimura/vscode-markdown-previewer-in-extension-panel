@@ -43,13 +43,14 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     private _fileListCache: { dirUri: string; files: string[]; sortOrder: FileSortOrder } | undefined;
     private _sidebarVisible = false;
     private _sidebarActiveTab: 'outline' | 'files' | 'help' = 'outline';
-    private _fileSortOrder: FileSortOrder = 'name';
+    private _fileSortOrder: FileSortOrder;
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
         private readonly _themeManager: ThemeManager
     ) {
         this._zoomLevel = this.getDefaultZoomLevel();
+        this._fileSortOrder = this.getDefaultFileSortOrder();
         this._md = new MarkdownIt({
             html: true,
             linkify: true,
@@ -754,6 +755,12 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const config = vscode.workspace.getConfiguration('markdownPreview');
         const defaultZoom = config.get<number>('defaultZoomLevel', 100);
         return Math.max(this._minZoom, Math.min(this._maxZoom, defaultZoom));
+    }
+
+    private getDefaultFileSortOrder(): FileSortOrder {
+        const config = vscode.workspace.getConfiguration('markdownPreview');
+        const sortOrder = config.get<string>('fileSortOrder', 'name');
+        return sortOrder === 'modified' ? 'modified' : 'name';
     }
 
     public async edit(): Promise<void> {
@@ -1717,7 +1724,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         /* Files panel header */
         .sidebar-files-header {
             display: flex;
-            justify-content: flex-end;
+            justify-content: flex-start;
             padding: 4px 0;
             margin-bottom: 4px;
             border-bottom: 1px solid var(--file-path-border);
@@ -3128,6 +3135,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         this._fileSortOrder = this._fileSortOrder === 'name' ? 'modified' : 'name';
         this.invalidateFileListCache();
         void this.updatePreview();
+        // Save sort order to settings
+        const config = vscode.workspace.getConfiguration('markdownPreview');
+        void config.update('fileSortOrder', this._fileSortOrder, vscode.ConfigurationTarget.Global);
     }
 
     private getRelativeFilePath(documentUri: vscode.Uri): string {

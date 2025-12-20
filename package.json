@@ -42,6 +42,19 @@
             "Always use the light theme",
             "Always use the dark theme"
           ]
+        },
+        "markdownPreview.fileSortOrder": {
+          "type": "string",
+          "enum": [
+            "name",
+            "modified"
+          ],
+          "default": "name",
+          "description": "Sort order for files in the sidebar Files tab.",
+          "enumDescriptions": [
+            "Sort files alphabetically by name",
+            "Sort files by modification date (newest first)"
+          ]
         }
       }
     },

@@ -37,6 +37,7 @@ VS Code のサイドバー（またはパネル）にフル機能の Markdown �
 | --- | --- | --- |
 | `markdownPreview.defaultZoomLevel` | `100` | デフォルトのズーム率を設定（50–200） |
 | `markdownPreview.themeMode` | `auto` | プレビューのテーマモード（`auto`, `light`, `dark`） |
+| `markdownPreview.fileSortOrder` | `name` | Filesタブのファイルソート順（`name`, `modified`） |
 
 ## 動作条件
 - Visual Studio Code 1.74.0 以降
