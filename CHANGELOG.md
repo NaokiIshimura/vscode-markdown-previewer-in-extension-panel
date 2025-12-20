@@ -5,6 +5,13 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.13] - 2025-12-20
+
+### Improved
+- Added margin between sidebar and preview content for better visual separation
+  - 16px left margin added to the sidebar when visible
+  - Provides clearer distinction between the main content area and the sidebar
+
 ## [0.4.12] - 2025-12-20
 
 ### Added
