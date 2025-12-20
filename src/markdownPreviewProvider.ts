@@ -23,6 +23,7 @@ interface FileListInfo {
 }
 
 type PreviewTheme = 'light' | 'dark';
+type FileSortOrder = 'name' | 'modified';
 
 export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'markdownPreview';
@@ -39,9 +40,10 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     private readonly _minZoom = 50;
     private readonly _maxZoom = 200;
     private readonly _zoomStep = 10;
-    private _fileListCache: { dirUri: string; files: string[] } | undefined;
+    private _fileListCache: { dirUri: string; files: string[]; sortOrder: FileSortOrder } | undefined;
     private _sidebarVisible = false;
     private _sidebarActiveTab: 'outline' | 'files' | 'help' = 'outline';
+    private _fileSortOrder: FileSortOrder = 'name';
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -185,6 +187,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 case 'sidebarStateChanged':
                     this._sidebarVisible = message.visible;
                     this._sidebarActiveTab = message.activeTab;
+                    break;
+                case 'toggleFileSortOrder':
+                    this.toggleFileSortOrder();
                     break;
             }
         });
@@ -905,6 +910,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const currentFileNameJson = JSON.stringify(currentFileName);
         const sidebarVisibleJson = JSON.stringify(this._sidebarVisible);
         const sidebarActiveTabJson = JSON.stringify(this._sidebarActiveTab);
+        const fileSortOrderJson = JSON.stringify(this._fileSortOrder);
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1708,6 +1714,43 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             padding-left: 48px;
         }
 
+        /* Files panel header */
+        .sidebar-files-header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 4px 0;
+            margin-bottom: 4px;
+            border-bottom: 1px solid var(--file-path-border);
+        }
+
+        .files-sort-toggle {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--md-foreground);
+            font-size: 0.75em;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 3px;
+            opacity: 0.7;
+            transition: opacity 0.2s, background-color 0.2s;
+        }
+
+        .files-sort-toggle:hover {
+            opacity: 1;
+            background-color: var(--md-code-background);
+        }
+
+        .files-sort-icon {
+            font-size: 0.9em;
+        }
+
+        .files-sort-label {
+            white-space: nowrap;
+        }
+
         .sidebar-content::-webkit-scrollbar {
             width: 8px;
         }
@@ -1837,6 +1880,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         // Initialize file list
         const fileList = ${fileListJson};
         const currentFileName = ${currentFileNameJson};
+        const fileSortOrder = ${fileSortOrderJson};
 
         // Sidebar state management
         let sidebarVisible = ${sidebarVisibleJson};
@@ -1988,6 +2032,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
             list.innerHTML = '';
 
+            // Initialize sort button
+            initFilesSortButton();
+
             if (fileList.length === 0) {
                 const emptyItem = document.createElement('li');
                 emptyItem.className = 'sidebar-list-item';
@@ -2019,6 +2066,28 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 li.appendChild(link);
                 list.appendChild(li);
             });
+        }
+
+        function initFilesSortButton() {
+            const sortIcon = document.getElementById('files-sort-icon');
+            const sortLabel = document.getElementById('files-sort-label');
+            const sortToggle = document.getElementById('files-sort-toggle');
+
+            if (sortIcon && sortLabel) {
+                if (fileSortOrder === 'name') {
+                    sortIcon.textContent = '🔤';
+                    sortLabel.textContent = 'Name';
+                } else {
+                    sortIcon.textContent = '🕐';
+                    sortLabel.textContent = 'Modified';
+                }
+            }
+
+            if (sortToggle) {
+                sortToggle.onclick = () => {
+                    vscode.postMessage({ command: 'toggleFileSortOrder' });
+                };
+            }
         }
 
         function updateSidebarSelection() {
@@ -2806,6 +2875,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 event.preventDefault();
                 showSidebar();
                 switchSidebarTab('files');
+            } else if (event.key === 'a') {
+                event.preventDefault();
+                vscode.postMessage({ command: 'toggleFileSortOrder' });
             } else if (event.key === 'c' && !event.metaKey && !event.ctrlKey) {
                 event.preventDefault();
                 copySelection();
@@ -2886,6 +2958,12 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                     <ul id="sidebar-outline-list" class="sidebar-list"></ul>
                 </div>
                 <div id="sidebar-panel-files" class="sidebar-panel">
+                    <div class="sidebar-files-header">
+                        <button id="files-sort-toggle" class="files-sort-toggle" title="Toggle sort order [a]">
+                            <span id="files-sort-icon" class="files-sort-icon"></span>
+                            <span id="files-sort-label" class="files-sort-label"></span>
+                        </button>
+                    </div>
                     <ul id="sidebar-files-list" class="sidebar-list"></ul>
                 </div>
                 <div id="sidebar-panel-help" class="sidebar-panel">
@@ -2912,6 +2990,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                             <tbody>
                                 <tr><td><code>o</code></td><td>Show sidebar (Outline tab)</td></tr>
                                 <tr><td><code>f</code></td><td>Show sidebar (Files tab)</td></tr>
+                                <tr><td><code>a</code></td><td>Toggle file sort order</td></tr>
                                 <tr><td><code>s</code></td><td>Toggle sidebar</td></tr>
                                 <tr><td><code>Tab</code></td><td>Switch between sidebar tabs</td></tr>
                                 <tr><td><code>↑/↓</code></td><td>Navigate sidebar items</td></tr>
@@ -2985,26 +3064,48 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             const dirUri = vscode.Uri.joinPath(uri, '..');
             const dirUriString = dirUri.toString();
 
-            // Check cache
-            if (this._fileListCache?.dirUri === dirUriString) {
+            // Check cache (including sort order)
+            if (this._fileListCache?.dirUri === dirUriString && this._fileListCache?.sortOrder === this._fileSortOrder) {
                 return this._fileListCache.files;
             }
 
             // Read directory
             const entries = await vscode.workspace.fs.readDirectory(dirUri);
 
-            // Filter and sort markdown files
-            const files = entries
+            // Filter markdown files
+            const markdownFiles = entries
                 .filter(([name, type]) =>
                     type === vscode.FileType.File &&
                     (name.endsWith('.md') || name.endsWith('.markdown')) &&
                     !name.startsWith('.')
                 )
-                .map(([name]) => name)
-                .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+                .map(([name]) => name);
+
+            // Sort based on current sort order
+            let files: string[];
+            if (this._fileSortOrder === 'modified') {
+                // Get file stats and sort by modification time (newest first)
+                const filesWithStats = await Promise.all(
+                    markdownFiles.map(async (name) => {
+                        const fileUri = vscode.Uri.joinPath(dirUri, name);
+                        try {
+                            const stat = await vscode.workspace.fs.stat(fileUri);
+                            return { name, mtime: stat.mtime };
+                        } catch {
+                            return { name, mtime: 0 };
+                        }
+                    })
+                );
+                files = filesWithStats
+                    .sort((a, b) => b.mtime - a.mtime)
+                    .map(f => f.name);
+            } else {
+                // Sort by name (default)
+                files = markdownFiles.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+            }
 
             // Update cache
-            this._fileListCache = { dirUri: dirUriString, files };
+            this._fileListCache = { dirUri: dirUriString, files, sortOrder: this._fileSortOrder };
 
             return files;
         } catch (error) {
@@ -3021,6 +3122,12 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
     public invalidateFileListCache(): void {
         this._fileListCache = undefined;
+    }
+
+    private toggleFileSortOrder(): void {
+        this._fileSortOrder = this._fileSortOrder === 'name' ? 'modified' : 'name';
+        this.invalidateFileListCache();
+        void this.updatePreview();
     }
 
     private getRelativeFilePath(documentUri: vscode.Uri): string {

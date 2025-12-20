@@ -13,6 +13,7 @@ A VS Code extension that keeps a fully featured Markdown preview docked in the s
 | Sidebar | `s` | Toggle sidebar panel with Outline, Files, and Help tabs; use Tab to switch between tabs, ↑/↓ to navigate items, Enter to select, Esc to close |
 | Outline | `o` | Open sidebar and show Outline tab; displays h1-h6 navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
 | File list | `f` | Open sidebar and show File list tab; displays markdown files in the same directory for quick navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
+| File sort | `a` | Toggle file sort order between name (alphabetical) and modified (newest first) |
 | Help | Sidebar tab | View all features and keyboard shortcuts in the sidebar Help tab; accessible via Tab key when sidebar is open |
 | Copy | `c` | Copy selected text to clipboard; shows VS Code notification message |
 | File Path Copy | Click path | Copy the file path to clipboard by clicking the file path; shows VS Code notification message |
@@ -56,7 +57,7 @@ Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window
 ## Tips & Known Limitations
 - **Sidebar**: Press `s` to toggle a sidebar panel that combines Outline, Files, and Help in a tabbed interface. Use Tab to switch between tabs, ↑/↓ to navigate items, Enter to select, and Esc to close.
 - **Outline**: Press `o` to open the sidebar and display the Outline tab. The sidebar automatically extracts h1-h6 headings from your Markdown document and provides clickable navigation.
-- **File list**: Press `f` to open the sidebar and display the File list tab. The sidebar displays all Markdown files in the same directory as the current file, with the current file highlighted. Click any file to switch to it.
+- **File list**: Press `f` to open the sidebar and display the File list tab. The sidebar displays all Markdown files in the same directory as the current file, with the current file highlighted. Click any file to switch to it. Press `a` to toggle sort order between name and modified date.
 - **Help**: The Help tab in the sidebar provides a quick reference for all features and keyboard shortcuts. Press Tab to cycle through sidebar tabs to reach it.
 - The File list tab only appears when there are 2 or more markdown files in the directory.
 - When the sidebar is open, use ↑/↓ to navigate items, Enter to select, and Esc to close.

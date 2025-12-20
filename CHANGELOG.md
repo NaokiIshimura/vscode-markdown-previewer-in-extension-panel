@@ -5,6 +5,15 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.12] - 2025-12-20
+
+### Added
+- File sort feature in the Files tab
+  - Toggle between name (alphabetical) and modified date (newest first) sort order
+  - Sort button displayed in the Files tab header showing current sort mode
+  - Press `a` key to toggle sort order from anywhere in the preview
+  - Sort icon indicates current mode: 🔤 for name, 🕐 for modified date
+
 ## [0.4.11] - 2025-12-20
 
 ### Changed
