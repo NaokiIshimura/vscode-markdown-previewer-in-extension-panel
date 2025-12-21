@@ -22,6 +22,13 @@ interface FileListInfo {
     currentFile: string;
 }
 
+interface HistoryItem {
+    filePath: string;
+    fileName: string;
+    relativePath: string;
+    timestamp: number;
+}
+
 type PreviewTheme = 'light' | 'dark';
 type FileSortOrder = 'name' | 'modified';
 
@@ -42,8 +49,10 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     private readonly _zoomStep = 10;
     private _fileListCache: { dirUri: string; files: string[]; sortOrder: FileSortOrder } | undefined;
     private _sidebarVisible = false;
-    private _sidebarActiveTab: 'outline' | 'files' | 'help' = 'outline';
+    private _sidebarActiveTab: 'outline' | 'files' | 'history' | 'help' = 'outline';
     private _fileSortOrder: FileSortOrder;
+    private _previewHistory: HistoryItem[] = [];
+    private readonly _maxHistoryItems = 50;
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -191,6 +200,12 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                     break;
                 case 'toggleFileSortOrder':
                     this.toggleFileSortOrder();
+                    break;
+                case 'navigateToHistoryItem':
+                    void this.navigateToHistoryItem(message.filePath);
+                    break;
+                case 'clearHistory':
+                    this.clearHistory();
                     break;
             }
         });
@@ -377,6 +392,11 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         this._currentPreviewUri = targetDocument.uri;
         this.updateEditAvailability(targetDocument.uri);
 
+        // Add to history when document changes
+        if (isDocumentChanged) {
+            this.addToHistory(targetDocument.uri);
+        }
+
         this._view.webview.options = {
             enableScripts: true,
             localResourceRoots: this.getLocalResourceRoots(targetDocument.uri)
@@ -394,8 +414,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const fileIcon = isOpenInEditor ? '📝' : '📄';
         const fileList = await this.getMarkdownFilesInDirectory(targetDocument.uri);
         const currentFileName = path.basename(targetDocument.uri.fsPath);
+        const historyItems = this.getPreviewHistory();
         this.setCanPin(true);
-        this._view.webview.html = this.getWebviewContent(this._view.webview, htmlContent, relativePath, fileIcon, outlineItems, fileList, currentFileName);
+        this._view.webview.html = this.getWebviewContent(this._view.webview, htmlContent, relativePath, fileIcon, outlineItems, fileList, currentFileName, historyItems);
 
         // Reset scroll position if document has changed
         if (isDocumentChanged) {
@@ -906,7 +927,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         return roots;
     }
 
-    private getWebviewContent(webview: vscode.Webview, htmlContent: string, relativePath: string, fileIcon: string, outlineItems: HeadingInfo[], fileList: string[], currentFileName: string): string {
+    private getWebviewContent(webview: vscode.Webview, htmlContent: string, relativePath: string, fileIcon: string, outlineItems: HeadingInfo[], fileList: string[], currentFileName: string, historyItems: HistoryItem[]): string {
         const themeClass = this.getThemeClass();
         const colorScheme = this._theme === 'dark' ? 'dark' : 'light';
         const fontSize = Math.max(this._minZoom, Math.min(this._maxZoom, this._zoomLevel)) / 100;
@@ -918,6 +939,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const sidebarVisibleJson = JSON.stringify(this._sidebarVisible);
         const sidebarActiveTabJson = JSON.stringify(this._sidebarActiveTab);
         const fileSortOrderJson = JSON.stringify(this._fileSortOrder);
+        const historyItemsJson = JSON.stringify(historyItems);
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1783,6 +1805,43 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             white-space: nowrap;
         }
 
+        /* History panel header */
+        .sidebar-history-header {
+            display: flex;
+            justify-content: flex-start;
+            padding: 4px 0;
+            margin-bottom: 4px;
+            border-bottom: 1px solid var(--file-path-border);
+        }
+
+        .history-clear-button {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--md-foreground);
+            font-size: 0.75em;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 3px;
+            opacity: 0.7;
+            transition: opacity 0.2s, background-color 0.2s;
+        }
+
+        .history-clear-button:hover {
+            opacity: 1;
+            background-color: var(--md-code-background);
+        }
+
+        .history-clear-icon {
+            font-size: 0.9em;
+        }
+
+        .history-clear-label {
+            white-space: nowrap;
+        }
+
         .sidebar-content::-webkit-scrollbar {
             width: 8px;
         }
@@ -1914,6 +1973,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const currentFileName = ${currentFileNameJson};
         const fileSortOrder = ${fileSortOrderJson};
 
+        // Initialize history items
+        const historyItems = ${historyItemsJson};
+
         // Sidebar state management
         let sidebarVisible = ${sidebarVisibleJson};
         let sidebarActiveTab = ${sidebarActiveTabJson};
@@ -1983,6 +2045,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 // Set cursor to current file in file list
                 const currentFileIndex = fileList.indexOf(currentFileName);
                 sidebarSelectedIndex = currentFileIndex >= 0 ? currentFileIndex : -1;
+            } else if (tab === 'history') {
+                // Set cursor to first item in history
+                sidebarSelectedIndex = historyItems.length > 0 ? 0 : -1;
             } else {
                 sidebarSelectedIndex = -1;
             }
@@ -1990,17 +2055,21 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
             const outlineTab = document.getElementById('sidebar-tab-outline');
             const filesTab = document.getElementById('sidebar-tab-files');
+            const historyTab = document.getElementById('sidebar-tab-history');
             const helpTab = document.getElementById('sidebar-tab-help');
             const outlinePanel = document.getElementById('sidebar-panel-outline');
             const filesPanel = document.getElementById('sidebar-panel-files');
+            const historyPanel = document.getElementById('sidebar-panel-history');
             const helpPanel = document.getElementById('sidebar-panel-help');
 
             // Remove active class from all tabs and panels
             if (outlineTab) outlineTab.classList.remove('active');
             if (filesTab) filesTab.classList.remove('active');
+            if (historyTab) historyTab.classList.remove('active');
             if (helpTab) helpTab.classList.remove('active');
             if (outlinePanel) outlinePanel.classList.remove('active');
             if (filesPanel) filesPanel.classList.remove('active');
+            if (historyPanel) historyPanel.classList.remove('active');
             if (helpPanel) helpPanel.classList.remove('active');
 
             // Add active class to selected tab and panel
@@ -2010,6 +2079,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (tab === 'files') {
                 if (filesTab) filesTab.classList.add('active');
                 if (filesPanel) filesPanel.classList.add('active');
+            } else if (tab === 'history') {
+                if (historyTab) historyTab.classList.add('active');
+                if (historyPanel) historyPanel.classList.add('active');
             } else if (tab === 'help') {
                 if (helpTab) helpTab.classList.add('active');
                 if (helpPanel) helpPanel.classList.add('active');
@@ -2020,6 +2092,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         function initSidebarContent() {
             initSidebarOutline();
             initSidebarFiles();
+            initSidebarHistory();
         }
 
         function initSidebarOutline() {
@@ -2122,8 +2195,65 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             }
         }
 
+        function initSidebarHistory() {
+            const list = document.getElementById('sidebar-history-list');
+            if (!list) return;
+
+            list.innerHTML = '';
+
+            // Initialize clear button
+            const clearButton = document.getElementById('history-clear-button');
+            if (clearButton) {
+                clearButton.onclick = () => {
+                    vscode.postMessage({ command: 'clearHistory' });
+                };
+            }
+
+            if (historyItems.length === 0) {
+                const emptyItem = document.createElement('li');
+                emptyItem.className = 'sidebar-list-item';
+                emptyItem.innerHTML = '<span class="sidebar-list-link" style="opacity: 0.5; cursor: default;">No history</span>';
+                list.appendChild(emptyItem);
+                return;
+            }
+
+            historyItems.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'sidebar-list-item';
+                li.setAttribute('data-index', index);
+                li.setAttribute('data-filepath', item.filePath);
+
+                // Mark current file
+                if (item.relativePath === '${relativePath.replace(/'/g, "\\'")}') {
+                    li.classList.add('current');
+                }
+
+                const link = document.createElement('a');
+                link.className = 'sidebar-list-link';
+                link.title = item.relativePath;
+                link.textContent = item.fileName;
+                link.href = '#';
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    vscode.postMessage({ command: 'navigateToHistoryItem', filePath: item.filePath });
+                });
+
+                li.appendChild(link);
+                list.appendChild(li);
+            });
+        }
+
         function updateSidebarSelection() {
-            const listId = sidebarActiveTab === 'outline' ? 'sidebar-outline-list' : 'sidebar-files-list';
+            let listId;
+            if (sidebarActiveTab === 'outline') {
+                listId = 'sidebar-outline-list';
+            } else if (sidebarActiveTab === 'files') {
+                listId = 'sidebar-files-list';
+            } else if (sidebarActiveTab === 'history') {
+                listId = 'sidebar-history-list';
+            } else {
+                return;
+            }
             const list = document.getElementById(listId);
             if (!list) return;
 
@@ -2143,7 +2273,16 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         function navigateSidebarUp() {
-            const maxIndex = sidebarActiveTab === 'outline' ? outlineItems.length : fileList.length;
+            let maxIndex;
+            if (sidebarActiveTab === 'outline') {
+                maxIndex = outlineItems.length;
+            } else if (sidebarActiveTab === 'files') {
+                maxIndex = fileList.length;
+            } else if (sidebarActiveTab === 'history') {
+                maxIndex = historyItems.length;
+            } else {
+                return;
+            }
             if (maxIndex === 0) return;
 
             if (sidebarSelectedIndex <= 0) {
@@ -2155,7 +2294,16 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         function navigateSidebarDown() {
-            const maxIndex = sidebarActiveTab === 'outline' ? outlineItems.length : fileList.length;
+            let maxIndex;
+            if (sidebarActiveTab === 'outline') {
+                maxIndex = outlineItems.length;
+            } else if (sidebarActiveTab === 'files') {
+                maxIndex = fileList.length;
+            } else if (sidebarActiveTab === 'history') {
+                maxIndex = historyItems.length;
+            } else {
+                return;
+            }
             if (maxIndex === 0) return;
 
             if (sidebarSelectedIndex >= maxIndex - 1) {
@@ -2176,12 +2324,16 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-            } else {
+            } else if (sidebarActiveTab === 'files') {
                 if (sidebarSelectedIndex >= fileList.length) return;
                 const selectedFileName = fileList[sidebarSelectedIndex];
                 if (selectedFileName !== currentFileName) {
                     vscode.postMessage({ command: 'navigateToFile', fileName: selectedFileName });
                 }
+            } else if (sidebarActiveTab === 'history') {
+                if (sidebarSelectedIndex >= historyItems.length) return;
+                const selectedHistoryItem = historyItems[sidebarSelectedIndex];
+                vscode.postMessage({ command: 'navigateToHistoryItem', filePath: selectedHistoryItem.filePath });
             }
         }
 
@@ -2874,6 +3026,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 if (sidebarActiveTab === 'outline') {
                     switchSidebarTab('files');
                 } else if (sidebarActiveTab === 'files') {
+                    switchSidebarTab('history');
+                } else if (sidebarActiveTab === 'history') {
                     switchSidebarTab('help');
                 } else {
                     switchSidebarTab('outline');
@@ -2907,6 +3061,10 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 event.preventDefault();
                 showSidebar();
                 switchSidebarTab('files');
+            } else if (event.key === 'h') {
+                event.preventDefault();
+                showSidebar();
+                switchSidebarTab('history');
             } else if (event.key === 'a') {
                 event.preventDefault();
                 vscode.postMessage({ command: 'toggleFileSortOrder' });
@@ -2983,6 +3141,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             <div class="sidebar-tabs">
                 <button id="sidebar-tab-outline" class="sidebar-tab active" onclick="switchSidebarTab('outline')">Outline</button>
                 <button id="sidebar-tab-files" class="sidebar-tab" onclick="switchSidebarTab('files')">Files</button>
+                <button id="sidebar-tab-history" class="sidebar-tab" onclick="switchSidebarTab('history')">History</button>
                 <button id="sidebar-tab-help" class="sidebar-tab" onclick="switchSidebarTab('help')">Help</button>
             </div>
             <div class="sidebar-content">
@@ -3001,6 +3160,15 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                         </button>
                     </div>
                     <ul id="sidebar-files-list" class="sidebar-list"></ul>
+                </div>
+                <div id="sidebar-panel-history" class="sidebar-panel">
+                    <div class="sidebar-history-header">
+                        <button id="history-clear-button" class="history-clear-button" title="Clear history">
+                            <span class="history-clear-icon">🗑️</span>
+                            <span class="history-clear-label">Clear</span>
+                        </button>
+                    </div>
+                    <ul id="sidebar-history-list" class="sidebar-list"></ul>
                 </div>
                 <div id="sidebar-panel-help" class="sidebar-panel">
                     <div class="help-content">
@@ -3026,6 +3194,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                             <tbody>
                                 <tr><td><code>o</code></td><td>Show sidebar (Outline tab)</td></tr>
                                 <tr><td><code>f</code></td><td>Show sidebar (Files tab)</td></tr>
+                                <tr><td><code>h</code></td><td>Show sidebar (History tab)</td></tr>
                                 <tr><td><code>a</code></td><td>Toggle file sort order</td></tr>
                                 <tr><td><code>s</code></td><td>Toggle sidebar</td></tr>
                                 <tr><td><code>Tab</code></td><td>Switch between sidebar tabs</td></tr>
@@ -3158,6 +3327,61 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
     public invalidateFileListCache(): void {
         this._fileListCache = undefined;
+    }
+
+    private addToHistory(uri: vscode.Uri): void {
+        const filePath = uri.fsPath;
+        const fileName = path.basename(filePath);
+        const relativePath = this.getRelativeFilePath(uri);
+
+        // Remove existing entry for this file if present
+        this._previewHistory = this._previewHistory.filter(
+            item => item.filePath !== filePath
+        );
+
+        // Add new entry at the beginning
+        this._previewHistory.unshift({
+            filePath,
+            fileName,
+            relativePath,
+            timestamp: Date.now()
+        });
+
+        // Limit history size
+        if (this._previewHistory.length > this._maxHistoryItems) {
+            this._previewHistory = this._previewHistory.slice(0, this._maxHistoryItems);
+        }
+    }
+
+    public getPreviewHistory(): HistoryItem[] {
+        return [...this._previewHistory];
+    }
+
+    public async navigateToHistoryItem(filePath: string): Promise<void> {
+        try {
+            const uri = vscode.Uri.file(filePath);
+            await this.updatePreview(uri);
+            // Update pin target if pinned
+            if (this._isPinned) {
+                this._pinnedUri = uri;
+                this._pinnedFileName = path.basename(uri.fsPath);
+            }
+            const fileName = path.basename(uri.fsPath);
+            void vscode.window.showInformationMessage(`Switched preview to ${fileName}`);
+        } catch (error) {
+            console.error('Failed to navigate to history item:', error);
+            void vscode.window.showErrorMessage('Failed to open file from history');
+            // Remove from history if file no longer exists
+            this._previewHistory = this._previewHistory.filter(
+                item => item.filePath !== filePath
+            );
+        }
+    }
+
+    public clearHistory(): void {
+        this._previewHistory = [];
+        void vscode.window.showInformationMessage('History cleared');
+        void this.updatePreview();
     }
 
     private toggleFileSortOrder(): void {
