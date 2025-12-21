@@ -5,6 +5,19 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.16] - 2025-12-21
+
+### Added
+- History tab in the sidebar for viewing and navigating preview history
+  - Displays recently previewed Markdown files in chronological order (most recent first)
+  - Click on any history item to switch preview to that file
+  - Clear button to remove all history entries
+  - Maximum 50 history entries stored in memory
+  - Press `h` key to open sidebar and show History tab
+  - Use Tab key to cycle through Outline, Files, History, and Help tabs
+  - Keyboard navigation: ↑/↓ to navigate items, Enter to select, Esc to close
+  - Current file highlighted in history list
+
 ## [0.4.15] - 2025-12-20
 
 ### Changed
