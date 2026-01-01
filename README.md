@@ -1,38 +1,59 @@
 # Markdown Previewer in Extension Area
 
-A VS Code extension that keeps a fully featured Markdown preview docked in the sidebar (or panel) so you can keep writing without juggling editor tabs.
+[![Version](https://img.shields.io/vscode-marketplace/v/nacn.markdown-previewer-in-extension-panel.svg)](https://marketplace.visualstudio.com/items?itemName=nacn.markdown-previewer-in-extension-panel) [![Installs](https://img.shields.io/vscode-marketplace/i/nacn.markdown-previewer-in-extension-panel.svg)](https://marketplace.visualstudio.com/items?itemName=nacn.markdown-previewer-in-extension-panel) [![Rating](https://img.shields.io/vscode-marketplace/r/nacn.markdown-previewer-in-extension-panel.svg)](https://marketplace.visualstudio.com/items?itemName=nacn.markdown-previewer-in-extension-panel)
 
-![demo2](assets/demo2.gif)
-
-![demo3](assets/demo3.gif)
+A VS Code extension that displays a fully featured Markdown preview in the extension area (primary sidebar, secondary sidebar, or panel) so you can read and navigate your documentation without juggling editor tabs.
 
 ## Features
 
+### 🎯 Extension Area Display
+
+Can be displayed in the primary sidebar, secondary sidebar, or panel.
+
+![demo3](assets/demo3.gif)
+
 | Feature | Shortcut | Description |
 | --- | --- | --- |
-| Sidebar | `s` | Toggle sidebar panel with Outline, Files, History, and Help tabs; use Tab to switch between tabs, ↑/↓ to navigate items, Enter to select, Esc to close |
-| Outline | `o` | Open sidebar and show Outline tab; displays current filename with h1-h6 navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
-| File list | `f` | Open sidebar and show File list tab; displays markdown files in the same directory for quick navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
-| History | `h` | Open sidebar and show History tab; displays recently previewed files for quick navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
-| File sort | `a` | Toggle file sort order between name (alphabetical) and modified (newest first) |
-| Help | Sidebar tab | View all features and keyboard shortcuts in the sidebar Help tab; accessible via Tab key when sidebar is open |
-| Copy | `c` | Copy selected text to clipboard; shows VS Code notification message |
-| File Path Copy | Click path | Copy the file path to clipboard by clicking the file path; shows VS Code notification message |
-| Copy as Quote | `q` | When text is selected, press `q` to copy selected text with `> ` prefix on each line for quoting in Markdown |
-| Light Theme<br>Dark Theme | `t` | Switch between light and dark theme for the preview |
-| Zoom In<br>Zoom Out | `+`<br>`-` | Zoom in/out the preview (displays current zoom level) |
-| Reset Zoom | `r` | Reset zoom level to 100% |
-| Navigate Previous<br>Navigate Next | `←`<br>`→` | Navigate to previous/next Markdown file in the same directory |
-| Pin<br>Unpin | `p` | Freeze the preview on the currently displayed Markdown file or return to follow mode |
+| Navigate Previous/Next | `←` / `→` | Navigate to previous/next Markdown file in the same directory |
+| Pin/Unpin | `p` | Freeze the preview on the currently displayed Markdown file or return to follow mode |
 | Edit | `e` | Open the previewed document in an editor tab |
-| File Path Display | Always visible | Shows the relative path from project root at the top of the preview |
-| Code Block Syntax Highlighting | Automatic | Adds language-aware coloring to fenced code blocks when you specify a language (for example, <code>```javascript</code>) |
-| Code Block Copy Button | Hover toolbar | Copies the entire fenced code block to your clipboard with one click |
+| File Path Copy | Click path | Copy the file path to clipboard by clicking the file path; shows VS Code notification message |
+| Open Settings | Toolbar only | Jump to the extension's configuration section |
+
+
+### 🎨 Rich Preview Experience
+
+Provides versatile features for a comfortable viewing experience.
+
+![demo2](assets/demo2.gif)
+
+| Feature | Shortcut | Description |
+| --- | --- | --- |
+| Light/Dark Theme | `t` | Switch between light and dark theme for the preview |
+| Zoom In/Out | `+` / `-` | Zoom in/out the preview (displays current zoom level) |
+| Reset Zoom | `r` | Reset zoom level to 100% |
 | Mermaid Diagrams | Automatic | Renders Mermaid diagrams (flowcharts, sequence diagrams, class diagrams, etc.) directly in the preview |
 | Mermaid Copy | Hover toolbar | Copy Mermaid diagram source as Markdown code block to clipboard |
 | Mermaid Save | Hover toolbar | Save Mermaid diagram as PNG image via VS Code save dialog |
-| Theme-Aware Scrollbars | Automatic | Scrollbars inside the preview now respect the active light/dark theme for better readability |
-| Open Settings | Toolbar only | Jump to the extension's configuration section |
+| Code Syntax Highlighting | Automatic | Adds language-aware coloring to fenced code blocks when you specify a language (for example, <code>```javascript</code>) |
+| Code Block Copy | Hover toolbar | Copies the entire fenced code block to your clipboard with one click |
+| Copy Selected Text | `c` | Copy selected text to clipboard; shows VS Code notification message |
+| Copy as Quote | `q` | Copy selected text with `> ` prefix on each line for quoting in Markdown |
+| File Path Display | Always visible | Shows the relative path from project root at the top of the preview |
+| Theme-Aware Scrollbars | Automatic | Scrollbars respect the active light/dark theme for better readability |
+
+### 🗂️ Sidebar Features
+
+Has four tabs (Outline, Files, History, Help) to view various information.
+
+| Tab | Shortcut | Description |
+| --- | --- | --- |
+| Sidebar | `s` | Toggle sidebar panel with Outline, Files, History, and Help tabs; use Tab to switch between tabs, ↑/↓ to navigate items, Enter to select, Esc to close |
+| Outline | `o` | Open sidebar and show Outline tab; displays current filename with h1-h6 navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
+| Files | `f` | Open sidebar and show File list tab; displays markdown files in the same directory for quick navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
+| File sort | `a` | Toggle file sort order between name (alphabetical) and modified (newest first) |
+| History | `h` | Open sidebar and show History tab; displays recently previewed files for quick navigation. Use ↑/↓ to navigate, Enter to select, Esc to close |
+| Help | Tab key | View all features and keyboard shortcuts in the sidebar Help tab; accessible via Tab key when sidebar is open |
 
 **Note**: Keyboard shortcuts work only when the preview is focused.
 
