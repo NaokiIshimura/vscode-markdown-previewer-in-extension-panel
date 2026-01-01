@@ -4,6 +4,8 @@
 
 A VS Code extension that displays a fully featured Markdown preview in the extension area (primary sidebar, secondary sidebar, or panel) so you can read and navigate your documentation without juggling editor tabs.
 
+→ [Get it on VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=nacn.markdown-previewer-in-extension-panel)
+
 ## Features
 
 ### 🎯 Extension Area Display
