@@ -48,8 +48,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     private readonly _maxZoom = 200;
     private readonly _zoomStep = 10;
     private _fileListCache: { dirUri: string; files: string[]; sortOrder: FileSortOrder } | undefined;
-    private _sidebarVisible = false;
-    private _sidebarActiveTab: 'outline' | 'files' | 'history' | 'help' = 'outline';
+    private _sidebarVisible = true;
+    private _sidebarActiveTab: 'outline' | 'files' | 'history' = 'outline';
     private _fileSortOrder: FileSortOrder;
     private _previewHistory: HistoryItem[] = [];
     private readonly _maxHistoryItems = 50;
@@ -1610,9 +1610,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         .sidebar {
-            width: 220px;
-            min-width: 220px;
-            max-width: 220px;
+            width: 180px;
+            min-width: 180px;
+            max-width: 180px;
             background-color: var(--file-path-background);
             border-left: 1px solid var(--file-path-border);
             display: none;
@@ -1879,73 +1879,6 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             color: var(--md-link);
         }
 
-        /* Help Panel Styles */
-        .help-content {
-            padding: 8px;
-            font-size: 0.85em;
-            line-height: 1.6;
-        }
-
-        .help-content h3 {
-            font-size: 1em;
-            margin-top: 16px;
-            margin-bottom: 8px;
-            color: var(--md-foreground);
-            border-bottom: 1px solid var(--file-path-border);
-            padding-bottom: 4px;
-        }
-
-        .help-content h3:first-child {
-            margin-top: 0;
-        }
-
-        .help-feature-list {
-            list-style: none;
-            padding: 0;
-            margin: 8px 0;
-        }
-
-        .help-feature-list li {
-            margin: 6px 0;
-            padding-left: 8px;
-        }
-
-        .help-feature-list strong {
-            color: var(--md-link);
-            font-weight: 600;
-        }
-
-        .help-shortcuts-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 8px 0;
-            font-size: 0.9em;
-        }
-
-        .help-shortcuts-table th,
-        .help-shortcuts-table td {
-            padding: 6px 8px;
-            border: 1px solid var(--file-path-border);
-            text-align: left;
-        }
-
-        .help-shortcuts-table th {
-            background-color: var(--md-code-background);
-            font-weight: 600;
-            color: var(--md-foreground);
-        }
-
-        .help-shortcuts-table td:first-child {
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-            font-weight: 600;
-            color: var(--md-link);
-        }
-
-        .help-shortcuts-table code {
-            background-color: transparent;
-            padding: 0;
-            font-size: 1em;
-        }
     </style>
     <script>
         const vscode = acquireVsCodeApi();
@@ -2056,21 +1989,17 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             const outlineTab = document.getElementById('sidebar-tab-outline');
             const filesTab = document.getElementById('sidebar-tab-files');
             const historyTab = document.getElementById('sidebar-tab-history');
-            const helpTab = document.getElementById('sidebar-tab-help');
             const outlinePanel = document.getElementById('sidebar-panel-outline');
             const filesPanel = document.getElementById('sidebar-panel-files');
             const historyPanel = document.getElementById('sidebar-panel-history');
-            const helpPanel = document.getElementById('sidebar-panel-help');
 
             // Remove active class from all tabs and panels
             if (outlineTab) outlineTab.classList.remove('active');
             if (filesTab) filesTab.classList.remove('active');
             if (historyTab) historyTab.classList.remove('active');
-            if (helpTab) helpTab.classList.remove('active');
             if (outlinePanel) outlinePanel.classList.remove('active');
             if (filesPanel) filesPanel.classList.remove('active');
             if (historyPanel) historyPanel.classList.remove('active');
-            if (helpPanel) helpPanel.classList.remove('active');
 
             // Add active class to selected tab and panel
             if (tab === 'outline') {
@@ -2082,9 +2011,6 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             } else if (tab === 'history') {
                 if (historyTab) historyTab.classList.add('active');
                 if (historyPanel) historyPanel.classList.add('active');
-            } else if (tab === 'help') {
-                if (helpTab) helpTab.classList.add('active');
-                if (helpPanel) helpPanel.classList.add('active');
             }
             notifySidebarStateChanged();
         }
@@ -3028,8 +2954,6 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 } else if (sidebarActiveTab === 'files') {
                     switchSidebarTab('history');
                 } else if (sidebarActiveTab === 'history') {
-                    switchSidebarTab('help');
-                } else {
                     switchSidebarTab('outline');
                 }
                 return;
@@ -3142,7 +3066,6 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 <button id="sidebar-tab-outline" class="sidebar-tab active" onclick="switchSidebarTab('outline')">Outline</button>
                 <button id="sidebar-tab-files" class="sidebar-tab" onclick="switchSidebarTab('files')">Files</button>
                 <button id="sidebar-tab-history" class="sidebar-tab" onclick="switchSidebarTab('history')">History</button>
-                <button id="sidebar-tab-help" class="sidebar-tab" onclick="switchSidebarTab('help')">Help</button>
             </div>
             <div class="sidebar-content">
                 <div id="sidebar-panel-outline" class="sidebar-panel active">
@@ -3169,49 +3092,6 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                         </button>
                     </div>
                     <ul id="sidebar-history-list" class="sidebar-list"></ul>
-                </div>
-                <div id="sidebar-panel-help" class="sidebar-panel">
-                    <div class="help-content">
-                        <h3>Features</h3>
-                        <ul class="help-feature-list">
-                            <li><strong>Pin/Unpin:</strong> Lock the preview to a specific file</li>
-                            <li><strong>Search:</strong> Find text within the current markdown file</li>
-                            <li><strong>Theme Toggle:</strong> Switch between light and dark themes</li>
-                            <li><strong>Zoom:</strong> Adjust preview text size (50-200%)</li>
-                            <li><strong>Edit:</strong> Open the previewed file in editor</li>
-                            <li><strong>Refresh:</strong> Reload the preview content</li>
-                            <li><strong>Open Settings:</strong> Access extension configuration</li>
-                        </ul>
-                        
-                        <h3>Keyboard Shortcuts</h3>
-                        <table class="help-shortcuts-table">
-                            <thead>
-                                <tr>
-                                    <th>Key</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td><code>o</code></td><td>Show sidebar (Outline tab)</td></tr>
-                                <tr><td><code>f</code></td><td>Show sidebar (Files tab)</td></tr>
-                                <tr><td><code>h</code></td><td>Show sidebar (History tab)</td></tr>
-                                <tr><td><code>a</code></td><td>Toggle file sort order</td></tr>
-                                <tr><td><code>s</code></td><td>Toggle sidebar</td></tr>
-                                <tr><td><code>Tab</code></td><td>Switch between sidebar tabs</td></tr>
-                                <tr><td><code>↑/↓</code></td><td>Navigate sidebar items</td></tr>
-                                <tr><td><code>Enter</code></td><td>Select sidebar item</td></tr>
-                                <tr><td><code>Esc</code></td><td>Close sidebar</td></tr>
-                                <tr><td><code>←/→</code></td><td>Previous/Next file</td></tr>
-                                <tr><td><code>p</code></td><td>Toggle pin</td></tr>
-                                <tr><td><code>e</code></td><td>Edit in editor</td></tr>
-                                <tr><td><code>t</code></td><td>Toggle theme</td></tr>
-                                <tr><td><code>+/-</code></td><td>Zoom in/out</td></tr>
-                                <tr><td><code>r</code></td><td>Reset zoom</td></tr>
-                                <tr><td><code>c</code></td><td>Copy selection</td></tr>
-                                <tr><td><code>q</code></td><td>Copy selection as quote</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
             </div>
         </aside>
