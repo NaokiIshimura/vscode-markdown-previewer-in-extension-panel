@@ -1,0 +1,218 @@
+---
+description: リリース準備を実行する（ブランチ作成、README/CHANGELOG更新、コミット、PR作成）
+---
+
+リリース準備を開始します。
+
+実行前に `npm run compile` が成功することを確認してください。
+
+## 注意事項
+
+- コミットメッセージは英語で記述してください
+- PRのタイトルは英語で記述してください
+- PRのdescriptionは英語で記述してください
+- ファイル末尾には必ず空行を含めてください
+
+---
+
+# リリース準備手順
+
+## 1. 事前確認
+
+```bash
+# 現在のブランチを確認
+git branch --show-current
+
+# package.jsonからバージョンを取得
+cat package.json | grep '"version"'
+
+# 未コミットの変更を確認
+git status
+```
+
+## 2. バージョン更新
+
+```bash
+# package.jsonのバージョンを手動で更新（例: 0.4.17 → 0.4.18）
+# またはnpm versionコマンドを使用
+npm version patch --no-git-tag-version
+```
+
+## 3. ブランチ作成
+
+- ブランチ名: `v{バージョン}` （例: `v0.4.18`）
+- mainブランチから作成
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b v{バージョン}
+```
+
+## 4. CLAUDE.md & README更新
+
+**注意**: 手順4と手順5（CHANGELOG更新）は並行して実行できます。
+
+対象ファイル：
+- `.claude/CLAUDE.md`（プロジェクトドキュメント）
+- `README.md`（英語版）
+- `README-JA.md`（日本語版）
+
+### CLAUDE.md更新ルール
+
+**更新内容**：
+- 新機能・変更に伴うアーキテクチャの更新
+- ファイル構成の変更を反映
+- 開発コマンドの追加・変更
+- デバッグ方法の更新
+- 重要な注意事項の追加
+
+**言語**：
+- 日本語で記述（コードベースへのチェックイン用プロジェクト説明）
+
+### README更新ルール
+
+**構造**（以下の順序を維持）：
+1. タイトルと概要
+2. Features
+3. Usage（Keyboard Shortcuts含む）
+4. Installation
+5. Requirements
+6. Development
+
+**更新内容**：
+- 新機能・変更をFeaturesセクションに反映
+- 設定変更をSettingsセクションに反映
+- キーボードショートカット追加をUsageセクションに反映
+- バージョン番号を更新（必要に応じて）
+
+**言語**：
+- README.md: 英語で記述
+- README-JA.md: 日本語で記述
+- 英語版と日本語版の内容を同期させる
+
+## 5. CHANGELOG更新
+
+対象ファイル：
+- `CHANGELOG.md`（英語版）
+
+### CHANGELOG更新ルール
+
+**フォーマット**：Keep a Changelog形式に準拠
+
+**セクションの種類**：
+- **Added**: 新機能
+- **Changed**: 既存機能の変更
+- **Deprecated**: 将来削除予定の機能
+- **Removed**: 削除された機能
+- **Fixed**: バグ修正
+- **Security**: セキュリティ関連の修正
+- **Improved**: パフォーマンス改善など
+- **Technical**: 内部的な技術変更
+
+**エントリのフォーマット**：
+```markdown
+## [X.Y.Z] - YYYY-MM-DD
+
+### Added
+- 機能の説明
+  - 詳細項目1
+  - 詳細項目2
+
+### Changed
+- 変更内容の説明
+```
+
+**記述ルール**：
+- 各エントリは「-」で始める
+- 説明は簡潔に（1-2文）
+- 日付は日本時間（JST）を使用（YYYY-MM-DD形式）
+
+**バージョンリンク**（ファイル末尾に追加）：
+```markdown
+[X.Y.Z]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/vX.Y.W...vX.Y.Z
+```
+
+**言語**：
+- CHANGELOG.md: 英語で記述
+
+## 6. Git Commit
+
+```bash
+# 変更をステージング（.claude, .vscodeは除外）
+git add package.json CLAUDE.md README.md README-JA.md CHANGELOG.md
+
+# コミット（英語メッセージ）
+git commit -m "Release v{バージョン}: Update documentation"
+```
+
+## 7. Push
+
+```bash
+git push origin v{バージョン}
+```
+
+## 8. PR作成
+
+GitHub MCPまたはghコマンドを使用してPRを作成：
+
+- **base**: `main`
+- **head**: `v{バージョン}`
+- **title**: `[v{バージョン}] {変更の要約}` （英語）
+- **description**: 変更内容の要約（英語）
+
+**PR descriptionのテンプレート**：
+```markdown
+## Summary
+- Brief description of changes
+
+## Changes
+### Added
+- New features
+
+### Changed
+- Modified features
+
+### Fixed
+- Bug fixes
+
+### Removed
+- Removed features
+
+## Test Checklist
+- [ ] npm run compile succeeds
+- [ ] Extension works in debug mode
+```
+
+---
+
+# 言語ルール一覧
+
+| 項目 | 言語 |
+|------|------|
+| UI表記 | 英語 |
+| commitメッセージ | 英語 |
+| PR title | 英語 |
+| PR description | 英語 |
+| CLAUDE.md | 日本語 |
+| README.md | 英語 |
+| README-JA.md | 日本語 |
+| CHANGELOG.md | 英語 |
+
+---
+
+# エラーハンドリング
+
+- ブランチが既に存在する場合: 既存ブランチにチェックアウト
+- コンフリクトが発生した場合: ユーザーに報告して手動解決を依頼
+- PR作成に失敗した場合: エラー内容を報告
+
+---
+
+# 完了報告
+
+すべての手順が完了したら、以下を報告：
+- 作成/更新したブランチ名
+- 更新したファイル一覧
+- 作成したPRのURL
+- 次のステップ（レビュー、マージ等）
