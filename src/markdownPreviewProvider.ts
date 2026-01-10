@@ -48,7 +48,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     private readonly _maxZoom = 200;
     private readonly _zoomStep = 10;
     private _fileListCache: { dirUri: string; files: string[]; sortOrder: FileSortOrder } | undefined;
-    private _sidebarVisible = false;
+    private _sidebarVisible = true;
     private _sidebarActiveTab: 'outline' | 'files' | 'history' = 'outline';
     private _fileSortOrder: FileSortOrder;
     private _previewHistory: HistoryItem[] = [];
