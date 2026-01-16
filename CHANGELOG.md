@@ -5,6 +5,62 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-01-16
+
+### Improved
+- Modernized the design system with a comprehensive set of design tokens
+  - Added 60+ CSS variables for typography, spacing, colors, shadows, and transitions
+  - Typography scale based on Major Third ratio (1.250) for better visual hierarchy
+  - 8px grid-based spacing system for consistent layout
+  - Extended color palette for both light and dark themes
+  - 5-tier shadow system (xs to xl) for depth and elevation
+  - Standardized border radius and transition values
+
+### Changed
+- Enhanced typography for better readability
+  - Adjusted heading sizes to be more suitable for sidebar/panel display
+  - h1: 1.75rem (28px), h2: 1.5rem (24px), h3: 1.25rem (20px)
+  - Improved line heights and letter spacing
+  - Added display font family with Japanese font support
+  - Enhanced heading borders with better visual weight
+
+- Improved code block styling
+  - Added borders and shadows for better visual separation
+  - Enhanced inline code with subtle borders
+  - Modernized copy button design with smooth hover effects
+  - Added elevation animation on hover (translateY)
+  - Improved Mermaid toolbar button styling
+
+- Enhanced blockquote design
+  - Increased left border thickness to 5px
+  - Added rounded corners on the right side
+  - Applied italic styling for emphasis
+  - Added subtle shadow for depth
+
+- Refined table styling
+  - Added rounded corners and shadows
+  - Implemented alternating row colors (striped pattern)
+  - Enhanced header styling with uppercase text
+  - Added smooth hover effects on rows
+  - Improved cell spacing and padding
+
+- Improved link interactions
+  - Replaced underline with animated bottom border
+  - Added smooth transitions for all states
+  - Enhanced focus outline for accessibility
+  - Increased font weight for better visibility
+
+- Enhanced list styling
+  - Improved spacing using design system variables
+  - Better line height for readability
+  - Refined nested list margins
+
+### Technical
+- Refactored CSS to use design system variables throughout
+- Improved code maintainability with semantic variable naming
+- Ensured backward compatibility with existing features
+- All changes successfully compiled without errors
+
 ## [0.4.16] - 2025-12-21
 
 ### Added
@@ -465,3 +521,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - (Future changes will be documented here)
+
+<!-- Version links -->
+[0.5.0]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.4.17...v0.5.0
+[0.4.17]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.4.16...v0.4.17
+[0.4.16]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.4.15...v0.4.16
+
