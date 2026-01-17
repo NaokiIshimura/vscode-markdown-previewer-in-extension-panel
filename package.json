@@ -3,13 +3,25 @@
   "publisher": "nacn",
   "displayName": "Markdown Preview in Extension Area",
   "description": "Display markdown preview in sidebar or panel",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "icon": "assets/icon-128.png",
   "engines": {
     "vscode": "^1.74.0"
   },
   "categories": [
     "Other"
+  ],
+  "keywords": [
+    "markdown",
+    "preview",
+    "viewer",
+    "sidebar",
+    "panel",
+    "mermaid",
+    "outline",
+    "documentation",
+    "readme",
+    "navigator"
   ],
   "repository": {
     "type": "git",

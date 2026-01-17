@@ -5,6 +5,14 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-01-17
+
+### Improved
+- Enhanced VS Code Marketplace discoverability by adding keywords to package.json
+  - Added 10 relevant keywords: markdown, preview, viewer, sidebar, panel, mermaid, outline, documentation, readme, navigator
+  - Improves search results for users looking for markdown preview extensions
+  - Better categorization for related extension recommendations
+
 ## [0.5.0] - 2026-01-16
 
 ### Improved
@@ -523,6 +531,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - (Future changes will be documented here)
 
 <!-- Version links -->
+[0.5.1]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.4.17...v0.5.0
 [0.4.17]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.4.16...v0.4.17
 [0.4.16]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.4.15...v0.4.16
