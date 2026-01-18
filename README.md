@@ -1,6 +1,6 @@
 # Markdown Previewer in Extension Area
 
-[![Version](https://img.shields.io/vscode-marketplace/v/nacn.markdown-previewer-in-extension-panel.svg)](https://marketplace.visualstudio.com/items?itemName=nacn.markdown-previewer-in-extension-panel) [![Installs](https://img.shields.io/vscode-marketplace/i/nacn.markdown-previewer-in-extension-panel.svg)](https://marketplace.visualstudio.com/items?itemName=nacn.markdown-previewer-in-extension-panel) [![Rating](https://img.shields.io/vscode-marketplace/r/nacn.markdown-previewer-in-extension-panel.svg)](https://marketplace.visualstudio.com/items?itemName=nacn.markdown-previewer-in-extension-panel)
+[![Version](https://img.shields.io/badge/version-0.5.1-blue)](https://marketplace.visualstudio.com/items?itemName=nacn.markdown-previewer-in-extension-panel) [![VS Code](https://img.shields.io/badge/VS%20Code-1.74.0%2B-blue)](https://code.visualstudio.com/)
 
 A VS Code extension that displays a fully featured Markdown preview in the extension area (primary sidebar, secondary sidebar, or panel) so you can read and navigate your documentation without juggling editor tabs.
 
