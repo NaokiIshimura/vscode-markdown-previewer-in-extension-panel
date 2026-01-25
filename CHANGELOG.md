@@ -5,6 +5,15 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2026-01-26
+
+### Improved
+- Optimized spacing for code elements and buttons to achieve a more compact and refined design
+  - Reduced inline code (`code`) padding from 4px 8px to 2px 6px for a sleeker appearance
+  - Added horizontal margin (2px) to inline code for better visual separation from surrounding text
+  - Reduced Copy/Save button padding from 8px 12px to 4px 8px for more compact controls
+  - Creates a balanced and cohesive spacing system across inline code and interactive elements
+
 ## [0.5.1] - 2026-01-17
 
 ### Improved
@@ -531,6 +540,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - (Future changes will be documented here)
 
 <!-- Version links -->
+[0.5.2]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.4.17...v0.5.0
 [0.4.17]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.4.16...v0.4.17

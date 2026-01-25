@@ -1,6 +1,6 @@
 # vscode-markdown-sidebar-viewer Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-01-17
+Auto-generated from all feature plans. Last updated: 2026-01-26
 
 ## Active Technologies
 
@@ -45,6 +45,11 @@ v0.5.0で包括的なデザインシステムを導入：
 
 ## Recent Changes
 
+- v0.5.2: コード要素とボタンのスペーシング最適化
+  - インラインコード（``）のpaddingを削減（4px 8px → 2px 6px）
+  - インラインコードに左右margin（2px）を追加
+  - Copy/Saveボタンのpaddingをコンパクトに（8px 12px → 4px 8px）
+  - より洗練されたコンパクトなデザインに改善
 - v0.5.1: package.jsonメタデータの改善
   - VS Code Marketplaceでの検索性向上のためkeywordsを追加
   - 10個の関連キーワード（markdown, preview, viewer, sidebar, panel, mermaid, outline, documentation, readme, navigator）
