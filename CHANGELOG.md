@@ -5,6 +5,52 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-01-26
+
+### Milestone
+- 🎉 **v1.0.0 Stable Release** - First stable version of Markdown Preview in Extension Area
+
+### Summary
+This major version release marks the extension as production-ready with a comprehensive feature set, established design system, and proven stability.
+
+**Why v1.0.0:**
+- **Feature Completeness**: All core features are implemented and polished
+  - Sidebar display with Preview, Outline, Files, History, and Help tabs
+  - Rich preview experience with Mermaid diagrams, syntax highlighting, and copy features
+  - Comprehensive navigation with pin/unpin, file switching, and keyboard shortcuts
+  - Theme management with light/dark modes and zoom controls
+- **Design System**: Comprehensive design system introduced in v0.5.0
+  - 60+ CSS variables for consistent design tokens
+  - Typography scale, spacing system, color palette, and shadow system
+- **Stability**: Proven through extensive development from v0.1.x to v0.5.x
+  - Performance optimization (70-90% CPU usage reduction)
+  - Continuous improvements based on user feedback
+- **Backward Compatibility**: No breaking changes from v0.5.x
+
+### Highlights
+
+**Core Features:**
+- Extension area display (primary sidebar, secondary sidebar, or panel)
+- Rich Markdown preview with Mermaid diagrams and syntax highlighting
+- Four-tab sidebar: Outline, Files, History, and Help
+- Pin/unpin functionality to freeze or follow active file
+- Light/dark theme toggle with auto-sync to VS Code theme
+- Zoom controls (50-200%) with keyboard shortcuts
+- File navigation with arrow keys and file list
+- Code block and Mermaid diagram copy/save features
+- Copy selected text and copy as quote features
+- File path copy by clicking the path
+- Keyboard-driven workflow with comprehensive shortcuts
+
+**Technical:**
+- Built on TypeScript 4.9.4 and VS Code Extension API 1.74.0+
+- Markdown rendering with markdown-it 13.0.1
+- Syntax highlighting with highlight.js
+- Modern design system with 60+ CSS variables
+
+### No Breaking Changes
+All existing features and settings are preserved. This release is fully backward compatible with v0.5.x.
+
 ## [0.5.2] - 2026-01-26
 
 ### Improved
@@ -540,6 +586,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - (Future changes will be documented here)
 
 <!-- Version links -->
+[1.0.0]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.5.2...v1.0.0
 [0.5.2]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.4.17...v0.5.0
