@@ -1230,7 +1230,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         code {
             background-color: var(--md-code-background);
             color: var(--md-code-foreground);
-            padding: var(--space-1) var(--space-2);
+            padding: 0.125rem 0.375rem;
+            margin: 0 0.125rem;
             border-radius: var(--radius-md);
             font-family: var(--font-mono);
             font-size: 0.9em;
@@ -1240,7 +1241,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         pre {
             background-color: var(--md-code-background);
             color: var(--md-code-foreground);
-            padding: var(--space-4);
+            padding: var(--space-3);
             border-radius: var(--radius-lg);
             overflow-x: auto;
             font-family: var(--font-mono);
@@ -1250,7 +1251,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             position: relative;
             border: 1px solid var(--md-heading-border);
             box-shadow: var(--shadow-sm);
-            margin: var(--space-4) 0;
+            margin: var(--space-3) 0;
         }
 
         pre code {
