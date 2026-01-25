@@ -8,11 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.2] - 2026-01-26
 
 ### Improved
-- Optimized spacing for code elements to achieve a more compact and refined design
+- Optimized spacing for code elements and buttons to achieve a more compact and refined design
   - Reduced inline code (`code`) padding from 4px 8px to 2px 6px for a sleeker appearance
   - Added horizontal margin (2px) to inline code for better visual separation from surrounding text
-  - Reduced code block (`pre`) padding and margin from 16px to 12px for more compact presentation
-  - Creates a balanced and cohesive spacing system across all code elements
+  - Reduced Copy/Save button padding from 8px 12px to 4px 8px for more compact controls
+  - Creates a balanced and cohesive spacing system across inline code and interactive elements
 
 ## [0.5.1] - 2026-01-17
 

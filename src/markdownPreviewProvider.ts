@@ -1241,7 +1241,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         pre {
             background-color: var(--md-code-background);
             color: var(--md-code-foreground);
-            padding: var(--space-3);
+            padding: var(--space-4);
             border-radius: var(--radius-lg);
             overflow-x: auto;
             font-family: var(--font-mono);
@@ -1251,7 +1251,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             position: relative;
             border: 1px solid var(--md-heading-border);
             box-shadow: var(--shadow-sm);
-            margin: var(--space-3) 0;
+            margin: var(--space-4) 0;
         }
 
         pre code {
@@ -1338,7 +1338,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             position: absolute;
             top: var(--space-2);
             right: var(--space-2);
-            padding: var(--space-2) var(--space-3);
+            padding: var(--space-1) var(--space-2);
             font-size: var(--text-xs);
             font-weight: 500;
             background-color: var(--copy-button-background);
@@ -1389,7 +1389,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
 
         .mermaid-copy-button,
         .mermaid-save-button {
-            padding: var(--space-2) var(--space-3);
+            padding: var(--space-1) var(--space-2);
             font-size: var(--text-xs);
             font-weight: 500;
             background-color: var(--copy-button-background);
