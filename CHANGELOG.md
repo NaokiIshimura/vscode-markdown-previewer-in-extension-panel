@@ -5,6 +5,20 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-01-29
+
+### Added
+- Test infrastructure with Mocha and @vscode/test-electron
+  - Unit test suite with 25 test cases covering utility functions
+  - Tests for slugify, clampZoom, validateThemeMode, and decodeHtmlEntities
+  - Run tests with `npm test` command
+  - Integration test support (environment-dependent)
+
+### Technical
+- Added devDependencies: mocha, @types/mocha, @vscode/test-electron
+- New test directory structure under `src/test/`
+- Test scripts: `npm test`, `npm run test:unit`, `npm run test:integration`
+
 ## [1.0.0] - 2026-01-26
 
 ### Milestone
@@ -586,6 +600,7 @@ All existing features and settings are preserved. This release is fully backward
 - (Future changes will be documented here)
 
 <!-- Version links -->
+[1.0.1]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.5.2...v1.0.0
 [0.5.2]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.5.0...v0.5.1

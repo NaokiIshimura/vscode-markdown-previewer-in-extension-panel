@@ -1,6 +1,6 @@
 # Markdown Previewer in Extension Area
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://marketplace.visualstudio.com/items?itemName=nacn.markdown-previewer-in-extension-panel) [![VS Code](https://img.shields.io/badge/VS%20Code-1.74.0%2B-blue)](https://code.visualstudio.com/)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue)](https://marketplace.visualstudio.com/items?itemName=nacn.markdown-previewer-in-extension-panel) [![VS Code](https://img.shields.io/badge/VS%20Code-1.74.0%2B-blue)](https://code.visualstudio.com/)
 
 A VS Code extension that displays a fully featured Markdown preview in the extension area (primary sidebar, secondary sidebar, or panel) so you can read and navigate your documentation without juggling editor tabs.
 
@@ -76,6 +76,7 @@ Has four tabs (Outline, Files, History, Help) to view various information.
 npm install      # install dependencies
 npm run compile  # one-shot build to ./out
 npm run watch    # incremental build while developing
+npm test         # run unit tests
 ```
 Launch the VS Code Extension Host (`F5`) to try changes live in a sandbox window.
 
