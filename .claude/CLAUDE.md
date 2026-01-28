@@ -1,10 +1,11 @@
 # vscode-markdown-sidebar-viewer Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-01-26
+Auto-generated from all feature plans. Last updated: 2026-01-29
 
 ## Active Technologies
 
 - TypeScript 4.9.4 / VS Code Extension API 1.74.0+ + VS Code Extension API, markdown-it 13.0.1
+- Mocha 11.x（テストフレームワーク）
 
 ## Project Structure
 
@@ -13,9 +14,15 @@ src/
   extension.ts            - 拡張機能のエントリーポイント
   markdownPreviewProvider.ts - Markdownプレビュー機能の実装（デザインシステム含む）
   themeManager.ts         - テーマ管理機能
-tests/
+  test/
+    unit/
+      utils.test.ts       - ユーティリティ関数のユニットテスト
+    suite/
+      extension.test.ts   - VS Code統合テスト（オプション）
+      index.ts            - テストランナー設定
+    runTest.ts            - VS Code統合テスト用エントリーポイント
 .claude/
-  tasks/                  - 実装計画と結果レポート
+  plans/                  - 実装計画と結果レポート
 ```
 
 ## Commands
@@ -23,7 +30,9 @@ tests/
 ```bash
 npm run compile         # TypeScriptのコンパイル
 npm run watch          # 変更監視モードでコンパイル
-npm test && npm run lint # テストとLintの実行
+npm test               # ユニットテストを実行
+npm run test:unit      # ユニットテストを実行（明示的）
+npm run test:integration # VS Code統合テストを実行（環境依存）
 ```
 
 ## Code Style
@@ -45,6 +54,10 @@ v0.5.0で包括的なデザインシステムを導入：
 
 ## Recent Changes
 
+- v1.0.1: テストインフラの追加
+  - Mocha + @vscode/test-electronによるテスト環境のセットアップ
+  - ユニットテスト（25テストケース）: slugify, clampZoom, validateThemeMode, decodeHtmlEntities
+  - npm testコマンドでユニットテストを実行可能
 - v1.0.0: 安定版リリース
   - 機能の完成度、デザインシステムの確立、安定性の向上を理由としたメジャーバージョンアップ
   - サイドバー表示、リッチプレビュー、4タブナビゲーション、テーマ管理、ズーム機能などが完備
