@@ -49,6 +49,7 @@ VS Code のサイドバー（またはパネル）にフル機能の Markdown �
 npm install      # 依存関係のインストール
 npm run compile  # ./out への単発ビルド
 npm run watch    # 開発中の継続ビルド
+npm test         # ユニットテストを実行
 ```
 VS Code の拡張機能開発ホスト（F5）を起動すると、新しいウィンドウで変更を即座に確認できます。
 
