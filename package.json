@@ -67,6 +67,11 @@
             "Sort files alphabetically by name",
             "Sort files by modification date (newest first)"
           ]
+        },
+        "markdownPreviewInExtensionPanel.scrollSync": {
+          "type": "boolean",
+          "default": true,
+          "description": "Synchronize scrolling between the source Markdown editor and the preview (bidirectional). The source editor must be visible alongside the preview."
         }
       }
     },
