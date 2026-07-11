@@ -66,6 +66,7 @@ Has four tabs (Outline, Files, History, Help) to view various information.
 | `markdownPreviewInExtensionPanel.defaultZoomLevel` | `100` | Default zoom percentage (50–200) |
 | `markdownPreviewInExtensionPanel.themeMode` | `auto` | Theme mode for the preview (`auto`, `light`, `dark`) |
 | `markdownPreviewInExtensionPanel.fileSortOrder` | `name` | Sort order for files in the Files tab (`name`, `modified`) |
+| `markdownPreviewInExtensionPanel.scrollSync` | `true` | Synchronize scrolling between the source editor and the preview (bidirectional). The source editor must be visible alongside the preview. |
 
 ## Requirements
 - Visual Studio Code 1.74.0 or later

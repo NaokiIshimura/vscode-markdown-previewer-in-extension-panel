@@ -5,6 +5,19 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-06-13
+
+### Added
+- Bidirectional scroll synchronization between the source Markdown editor and the preview
+  - Scrolling the editor moves the preview to the matching content, and vice versa
+  - Uses source-line anchors (`data-source-line`) injected at render time, mapped
+    via a pure, unit-tested interpolation module (`src/scrollSync.ts`)
+  - New setting `markdownPreviewInExtensionPanel.scrollSync` (boolean, default `true`)
+  - Echo-loop guards on both sides keep editor and preview from fighting each other
+
+### Technical
+- Added 11 unit tests for the scroll-sync mapping functions
+
 ## [1.0.1] - 2026-01-29
 
 ### Added

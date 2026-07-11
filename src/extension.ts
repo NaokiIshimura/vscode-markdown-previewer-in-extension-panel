@@ -111,6 +111,14 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
+    // Editor -> Preview scroll sync: push the editor's top visible line to the
+    // preview whenever its viewport moves.
+    context.subscriptions.push(
+        vscode.window.onDidChangeTextEditorVisibleRanges((event) => {
+            provider.handleEditorVisibleRangeChange(event.textEditor);
+        })
+    );
+
     // Listen for document changes with debounce
     context.subscriptions.push(
         vscode.workspace.onDidChangeTextDocument((event) => {
@@ -132,6 +140,10 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.workspace.onDidChangeConfiguration((event) => {
             if (event.affectsConfiguration('markdownPreviewInExtensionPanel.defaultZoomLevel')) {
                 provider.onConfigurationChanged();
+            }
+            // Re-render so the webview picks up the new scrollSync flag.
+            if (event.affectsConfiguration('markdownPreviewInExtensionPanel.scrollSync')) {
+                void provider.refresh();
             }
         })
     );

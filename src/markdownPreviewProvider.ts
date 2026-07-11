@@ -4,6 +4,7 @@ import hljs from 'highlight.js';
 import * as path from 'path';
 import anchor from 'markdown-it-anchor';
 import { ThemeManager, EffectiveTheme } from './themeManager';
+import { lineToScrollTop, scrollTopToLine } from './scrollSync';
 
 interface MarkdownRenderEnv {
     webview?: vscode.Webview;
@@ -53,6 +54,8 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     private _fileSortOrder: FileSortOrder;
     private _previewHistory: HistoryItem[] = [];
     private readonly _maxHistoryItems = 50;
+    private _suppressEditorSync = false;
+    private _suppressEditorSyncTimer?: ReturnType<typeof setTimeout>;
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -81,6 +84,17 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         this._md.use(anchor, {
             permalink: false,
             slugify: (s: string) => encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, '-'))
+        });
+
+        // Tag top-level block elements with their source line so the webview can
+        // map editor scroll position to preview position (and back). See scrollSync.ts.
+        this._md.core.ruler.push('source_line_mapping', (state) => {
+            for (const token of state.tokens) {
+                if (token.level === 0 && token.map) {
+                    token.attrSet('data-source-line', String(token.map[0]));
+                }
+            }
+            return false;
         });
 
         this._theme = this.getInitialTheme();
@@ -206,6 +220,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                     break;
                 case 'clearHistory':
                     this.clearHistory();
+                    break;
+                case 'revealLine':
+                    this.revealLineInEditor(message.line);
                     break;
             }
         });
@@ -784,6 +801,60 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         return sortOrder === 'modified' ? 'modified' : 'name';
     }
 
+    private getScrollSyncEnabled(): boolean {
+        const config = vscode.workspace.getConfiguration('markdownPreviewInExtensionPanel');
+        return config.get<boolean>('scrollSync', true);
+    }
+
+    /**
+     * Editor -> Preview. Called when an editor's visible range changes. If the
+     * editor shows the document currently in the preview, push its top visible
+     * line to the webview. Suppressed briefly after we drove the editor from a
+     * preview scroll, to avoid a feedback loop.
+     */
+    public handleEditorVisibleRangeChange(editor: vscode.TextEditor): void {
+        if (!this._view || !this.getScrollSyncEnabled() || this._suppressEditorSync) {
+            return;
+        }
+        if (!this._currentPreviewUri || editor.document.uri.toString() !== this._currentPreviewUri.toString()) {
+            return;
+        }
+        const visible = editor.visibleRanges[0];
+        if (!visible) {
+            return;
+        }
+        this._view.webview.postMessage({ command: 'syncToLine', line: visible.start.line });
+    }
+
+    /**
+     * Preview -> Editor. Reveal the given source line at the top of the editor
+     * showing the previewed document. No-op if that document has no visible
+     * editor. Sets a short suppression window so the resulting visible-range
+     * change does not bounce back to the preview.
+     */
+    private revealLineInEditor(line: number): void {
+        if (!this.getScrollSyncEnabled() || !this._currentPreviewUri) {
+            return;
+        }
+        const uri = this._currentPreviewUri.toString();
+        const editor = vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === uri);
+        if (!editor) {
+            return;
+        }
+        const targetLine = Math.max(0, Math.min(Math.round(line), editor.document.lineCount - 1));
+        this._suppressEditorSync = true;
+        editor.revealRange(
+            new vscode.Range(targetLine, 0, targetLine, 0),
+            vscode.TextEditorRevealType.AtTop
+        );
+        if (this._suppressEditorSyncTimer) {
+            clearTimeout(this._suppressEditorSyncTimer);
+        }
+        this._suppressEditorSyncTimer = setTimeout(() => {
+            this._suppressEditorSync = false;
+        }, 150);
+    }
+
     public async edit(): Promise<void> {
         if (!this._currentPreviewUri) {
             void vscode.window.showInformationMessage('No Markdown preview available to edit.');
@@ -940,6 +1011,9 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         const sidebarActiveTabJson = JSON.stringify(this._sidebarActiveTab);
         const fileSortOrderJson = JSON.stringify(this._fileSortOrder);
         const historyItemsJson = JSON.stringify(historyItems);
+        const scrollSyncEnabledJson = JSON.stringify(this.getScrollSyncEnabled());
+        const lineToScrollTopSrc = lineToScrollTop.toString();
+        const scrollTopToLineSrc = scrollTopToLine.toString();
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2103,6 +2177,48 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             theme: '${mermaidTheme}'
         });
 
+        // --- Scroll sync (editor <-> preview) ---
+        // The exact same pure functions that are unit tested extension-side,
+        // injected here so the mapping logic has a single source of truth.
+        const lineToScrollTop = ${lineToScrollTopSrc};
+        const scrollTopToLine = ${scrollTopToLineSrc};
+        const scrollSyncEnabled = ${scrollSyncEnabledJson};
+        let suppressScrollSync = false;
+        let suppressScrollSyncTimer = null;
+
+        // Read current block anchors fresh each time, since async-rendered
+        // content (mermaid, images) changes element offsets after load.
+        function collectAnchors() {
+            const els = document.querySelectorAll('.preview-content [data-source-line]');
+            const anchors = [];
+            for (const el of els) {
+                const line = parseInt(el.getAttribute('data-source-line'), 10);
+                if (!isNaN(line)) {
+                    anchors.push({ line: line, offset: el.getBoundingClientRect().top + window.scrollY });
+                }
+            }
+            return anchors;
+        }
+
+        function holdSuppression() {
+            suppressScrollSync = true;
+            if (suppressScrollSyncTimer) clearTimeout(suppressScrollSyncTimer);
+            suppressScrollSyncTimer = setTimeout(() => { suppressScrollSync = false; }, 150);
+        }
+
+        // Preview -> Editor: report the top visible source line as we scroll.
+        let previewScrollTimer = null;
+        window.addEventListener('scroll', () => {
+            if (!scrollSyncEnabled || suppressScrollSync) return;
+            if (previewScrollTimer) clearTimeout(previewScrollTimer);
+            previewScrollTimer = setTimeout(() => {
+                const anchors = collectAnchors();
+                if (anchors.length === 0) return;
+                const line = scrollTopToLine(anchors, window.scrollY);
+                vscode.postMessage({ command: 'revealLine', line: line });
+            }, 50);
+        });
+
         // Handle messages from the extension
         window.addEventListener('message', event => {
             const message = event.data;
@@ -2110,6 +2226,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                 window.scrollTo(0, 0);
             } else if (message.command === 'showSearch') {
                 showSearch();
+            } else if (message.command === 'syncToLine') {
+                if (!scrollSyncEnabled) return;
+                const anchors = collectAnchors();
+                if (anchors.length === 0) return;
+                // Editor drove this; suppress the echo back to the editor.
+                holdSuppression();
+                window.scrollTo(0, lineToScrollTop(anchors, message.line));
             }
         });
 
