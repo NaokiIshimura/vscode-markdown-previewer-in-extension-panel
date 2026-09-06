@@ -5,6 +5,7 @@ import * as path from 'path';
 import anchor from 'markdown-it-anchor';
 import { ThemeManager, EffectiveTheme } from './themeManager';
 import { lineToScrollTop, scrollTopToLine } from './scrollSync';
+import { normalizeUrl, isExternalUrl } from './browserUtils';
 
 interface MarkdownRenderEnv {
     webview?: vscode.Webview;
@@ -223,6 +224,18 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                     break;
                 case 'revealLine':
                     this.revealLineInEditor(message.line);
+                    break;
+                case 'openUrl':
+                    // URLを標準ブラウザで開く（メニューはhttp/httpsリンクのみ表示される）
+                    if (isExternalUrl(message.url)) {
+                        void vscode.env.openExternal(vscode.Uri.parse(message.url));
+                    }
+                    break;
+                case 'openUrlInIntegratedBrowser':
+                    // URLを統合ブラウザ（Simple Browser）で開く
+                    if (isExternalUrl(message.url)) {
+                        void this.openInIntegratedBrowser(message.url);
+                    }
                     break;
             }
         });
@@ -853,6 +866,19 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         this._suppressEditorSyncTimer = setTimeout(() => {
             this._suppressEditorSync = false;
         }, 150);
+    }
+
+    /**
+     * Opens a URL in VS Code's built-in Simple Browser.
+     * The URL must always be passed, otherwise Simple Browser prompts for input.
+     */
+    private async openInIntegratedBrowser(url: string): Promise<void> {
+        try {
+            await vscode.commands.executeCommand('simpleBrowser.show', normalizeUrl(url));
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            void vscode.window.showErrorMessage(`Failed to open the integrated browser: ${message}`);
+        }
     }
 
     public async edit(): Promise<void> {
@@ -2168,6 +2194,52 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             color: var(--md-link);
         }
 
+
+        /* URL right-click context menu */
+        .context-menu {
+            position: fixed;
+            z-index: 10000;
+            min-width: 180px;
+            padding: var(--space-1) 0;
+            background-color: var(--md-background);
+            color: var(--md-foreground);
+            border: 1px solid var(--file-path-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            font-family: var(--font-sans);
+            font-size: var(--text-xs);
+        }
+
+        .context-menu.hidden {
+            display: none;
+        }
+
+        .context-menu-header {
+            max-width: 320px;
+            padding: var(--space-1) var(--space-3);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            opacity: 0.7;
+        }
+
+        .context-menu-item {
+            padding: var(--space-1) var(--space-3);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+        }
+
+        .context-menu-item:hover {
+            background-color: var(--md-link);
+            color: #ffffff;
+        }
+
+        .context-menu-separator {
+            height: 1px;
+            margin: var(--space-1) 0;
+            background-color: var(--file-path-border);
+        }
     </style>
     <script>
         const vscode = acquireVsCodeApi();
@@ -3235,6 +3307,121 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             }
         }
 
+        // --- URL context menu ---
+        // 外部リンクを右クリックした時に、標準ブラウザ / 統合ブラウザのどちらで開くかを選択する
+        const URL_CONTEXT_MENU_ITEMS = [
+            { label: 'Open in Default Browser', command: 'openUrl' },
+            { label: 'Open in Integrated Browser', command: 'openUrlInIntegratedBrowser' }
+        ];
+
+        // メニューの見出しに表示するURLの最大文字数
+        const URL_LABEL_MAX_LENGTH = 60;
+
+        function getContextMenuElement() {
+            return document.getElementById('context-menu');
+        }
+
+        function isContextMenuVisible() {
+            const menu = getContextMenuElement();
+            return !!menu && !menu.classList.contains('hidden');
+        }
+
+        function hideContextMenu() {
+            const menu = getContextMenuElement();
+            if (menu) {
+                menu.classList.add('hidden');
+            }
+        }
+
+        function showUrlContextMenu(event, url) {
+            const menu = getContextMenuElement();
+            if (!menu) {
+                return;
+            }
+            menu.textContent = '';
+
+            // 対象のURLを見出しとして表示する
+            const header = document.createElement('div');
+            header.className = 'context-menu-header';
+            header.textContent = url.length > URL_LABEL_MAX_LENGTH
+                ? url.slice(0, URL_LABEL_MAX_LENGTH) + '…'
+                : url;
+            header.title = url;
+            menu.appendChild(header);
+
+            const separator = document.createElement('div');
+            separator.className = 'context-menu-separator';
+            menu.appendChild(separator);
+
+            for (const entry of URL_CONTEXT_MENU_ITEMS) {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'context-menu-item';
+                menuItem.textContent = entry.label;
+                menuItem.addEventListener('click', () => {
+                    hideContextMenu();
+                    vscode.postMessage({ command: entry.command, url: url });
+                });
+                menu.appendChild(menuItem);
+            }
+
+            menu.classList.remove('hidden');
+
+            // 画面外にはみ出さないように位置を調整
+            const menuRect = menu.getBoundingClientRect();
+            const left = Math.min(event.clientX, window.innerWidth - menuRect.width - 4);
+            const top = Math.min(event.clientY, window.innerHeight - menuRect.height - 4);
+            menu.style.left = Math.max(0, left) + 'px';
+            menu.style.top = Math.max(0, top) + 'px';
+        }
+
+        // 右クリック位置のリンクからhttp/httpsのURLを取得する
+        // 相対リンクやアンカーリンクは対象外（VS Code標準のメニューを表示させる）
+        function findExternalUrlFromEvent(event) {
+            const target = event.target;
+            if (!target || typeof target.closest !== 'function') {
+                return null;
+            }
+            const link = target.closest('.preview-content a[href]');
+            if (!link) {
+                return null;
+            }
+            const url = (link.getAttribute('href') || '').trim();
+            const lowered = url.toLowerCase();
+            if (!lowered.startsWith('http://') && !lowered.startsWith('https://')) {
+                return null;
+            }
+            return url;
+        }
+
+        // 外部リンク上での右クリックのみ自前のメニューを表示する
+        // preventDefault() を呼ばない場合はVS Code標準のメニューが表示される
+        document.addEventListener('contextmenu', (event) => {
+            const menu = getContextMenuElement();
+            if (menu && menu.contains(event.target)) {
+                return;
+            }
+            hideContextMenu();
+            const url = findExternalUrlFromEvent(event);
+            if (!url) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            showUrlContextMenu(event, url);
+        });
+
+        document.addEventListener('click', (event) => {
+            const menu = getContextMenuElement();
+            if (!menu || !menu.contains(event.target)) {
+                hideContextMenu();
+            }
+        });
+
+        window.addEventListener('blur', hideContextMenu);
+
+        // ユーザー操作によるスクロールでは閉じる
+        document.addEventListener('wheel', hideContextMenu, { passive: true });
+
         // Initialize enhancements when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
@@ -3253,6 +3440,13 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
         }
 
         window.addEventListener('keydown', (event) => {
+            // コンテキストメニュー表示中はEscapeでメニューを閉じる（サイドバーより優先）
+            if (event.key === 'Escape' && isContextMenuVisible()) {
+                event.preventDefault();
+                hideContextMenu();
+                return;
+            }
+
             // 検索入力がフォーカスされている場合はショートカットキーをスキップ
             const searchInput = document.getElementById('search-input');
             if (searchInput && document.activeElement === searchInput) {
@@ -3434,6 +3628,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
             </div>
         </aside>
     </div>
+    <div id="context-menu" class="context-menu hidden"></div>
 </body>
 </html>`;
     }

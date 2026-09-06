@@ -5,6 +5,22 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2026-09-06
+
+### Added
+- **URL Context Menu in the Preview**: Right-clicking an external link now offers a choice of browser
+  - **Open in Default Browser** opens the URL in the system browser, the same as a left-click
+  - **Open in Integrated Browser** opens it in VS Code's built-in Simple Browser
+  - The menu header shows the target URL (truncated to 60 characters, full URL in the tooltip)
+  - Only `http` / `https` links show the menu; relative links and in-document anchors keep the standard VS Code context menu
+  - The menu closes on a click outside it, `Escape`, scrolling with the wheel, or losing window focus
+
+### Technical
+- **Browser Helper**: Added `src/browserUtils.ts` with the pure `normalizeUrl()` and `isExternalUrl()` functions
+  - VS Code API calls (`env.openExternal`, `simpleBrowser.show`) stay in `MarkdownPreviewProvider`, keeping the helpers unit testable
+- Added 14 unit tests for the URL helpers (50 unit tests in total)
+- Ported from `vscode-ai-coding-sidebar` v1.1.11, adapting the Terminal view feature to preview links
+
 ## [1.1.0] - 2026-06-13
 
 ### Added
@@ -613,6 +629,7 @@ All existing features and settings are preserved. This release is fully backward
 - (Future changes will be documented here)
 
 <!-- Version links -->
+[1.1.2]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v1.1.0...v1.1.2
 [1.0.1]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.5.2...v1.0.0
 [0.5.2]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.5.1...v0.5.2
