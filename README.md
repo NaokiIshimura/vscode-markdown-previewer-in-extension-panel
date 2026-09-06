@@ -43,6 +43,7 @@ Provides versatile features for a comfortable viewing experience.
 | Copy as Quote | `q` | Copy selected text with `> ` prefix on each line for quoting in Markdown |
 | File Path Display | Always visible | Shows the relative path from project root at the top of the preview |
 | Theme-Aware Scrollbars | Automatic | Scrollbars respect the active light/dark theme for better readability |
+| Link Context Menu | Right-click a link | Choose between the default browser and VS Code's integrated Simple Browser for `http`/`https` links |
 
 ### 🗂️ Sidebar Features
 
