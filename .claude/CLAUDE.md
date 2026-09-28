@@ -39,6 +39,14 @@ npm run test:integration # VS Code統合テストを実行（環境依存）
 
 TypeScript 4.9.4 / VS Code Extension API 1.74.0+: Follow standard conventions
 
+## README
+
+多言語のREADMEを提供している：
+
+- `README.md`（英語）、`README-JA.md`（日本語）、`README-KO.md`（韓国語）、`README-ZH-CN.md`（中国語簡体字）、`README-ZH-TW.md`（中国語繁体字）、`README-PT-BR.md`（ポルトガル語・ブラジル）
+- **バージョン更新時**: `package.json`の`version`を変更した際は、全READMEのversionバッジ（`https://img.shields.io/badge/version-X.Y.Z-blue`）を同じバージョンに更新すること
+- **内容更新時**: 英語の`README.md`を基準とし、他言語のREADMEも同じ構成・内容に揃えること
+
 ## Design System
 
 v0.5.0で包括的なデザインシステムを導入：
