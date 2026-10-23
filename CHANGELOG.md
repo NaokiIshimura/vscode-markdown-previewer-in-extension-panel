@@ -5,6 +5,14 @@ All notable changes to the "Markdown Preview in Extension Area" extension will b
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-10-23
+
+### Fixed
+- **Mermaid Diagrams Not Rendering**: Top-level Mermaid code blocks were shown as plain code instead of diagrams
+  - Since the scroll sync change in v1.1.0, fenced code blocks carry a `data-source-line` attribute before `class`, which broke the Mermaid block detection
+  - Mermaid blocks are now detected by the `language-mermaid` class regardless of attribute order
+  - The `data-source-line` anchor is carried over to the Mermaid wrapper so scroll sync keeps working around diagrams
+
 ## [1.1.2] - 2026-09-06
 
 ### Added
@@ -629,6 +637,7 @@ All existing features and settings are preserved. This release is fully backward
 - (Future changes will be documented here)
 
 <!-- Version links -->
+[1.1.3]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v1.1.0...v1.1.2
 [1.0.1]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/NaokiIshimura/vscode-markdown-previewer-in-extension-panel/compare/v0.5.2...v1.0.0

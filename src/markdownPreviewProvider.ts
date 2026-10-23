@@ -760,10 +760,17 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
     }
 
     private convertMermaidBlocks(html: string): string {
-        // Match code blocks with language-mermaid class (may have additional classes like hljs)
+        // Match code blocks with language-mermaid class (may have additional classes like hljs
+        // and other attributes like data-source-line, in any order)
         return html.replace(
-            /<pre><code class="[^"]*language-mermaid[^"]*">([\s\S]*?)<\/code><\/pre>/g,
-            (_match, code) => {
+            /<pre><code([^>]*)>([\s\S]*?)<\/code><\/pre>/g,
+            (match, attrs: string, code: string) => {
+                if (!/\bclass="[^"]*\blanguage-mermaid\b[^"]*"/.test(attrs)) {
+                    return match;
+                }
+                // Keep the source line on the wrapper so scroll sync still works
+                const sourceLine = /\bdata-source-line="(\d+)"/.exec(attrs)?.[1];
+                const sourceLineAttr = sourceLine !== undefined ? ` data-source-line="${sourceLine}"` : '';
                 // Decode HTML entities for the data attribute
                 const decodedCode = code
                     .replace(/&lt;/g, '<')
@@ -773,7 +780,7 @@ export class MarkdownPreviewProvider implements vscode.WebviewViewProvider {
                     .replace(/&#39;/g, "'");
                 // Encode for safe HTML attribute storage
                 const encodedCode = Buffer.from(decodedCode).toString('base64');
-                return `<div class="mermaid-wrapper"><div class="mermaid" data-mermaid-source="${encodedCode}">${code}</div><div class="mermaid-toolbar"><button class="mermaid-copy-button" title="Copy Mermaid code">Copy</button><button class="mermaid-save-button" title="Save as PNG">Save</button></div></div>`;
+                return `<div class="mermaid-wrapper"${sourceLineAttr}><div class="mermaid" data-mermaid-source="${encodedCode}">${code}</div><div class="mermaid-toolbar"><button class="mermaid-copy-button" title="Copy Mermaid code">Copy</button><button class="mermaid-save-button" title="Save as PNG">Save</button></div></div>`;
             }
         );
     }
